@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORCHIDS Branch Search (Route Enabled)</title>
+    <title>ORCHIDS Branch Search (Hybrid Engine)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- MapTiler SDK -->
+    <!-- MapTiler SDK (Visuals) -->
     <link href="https://cdn.maptiler.com/maptiler-sdk-js/v1.1.1/maptiler-sdk.css" rel="stylesheet" />
     <script src="https://cdn.maptiler.com/maptiler-sdk-js/v1.1.1/maptiler-sdk.umd.min.js"></script>
 
@@ -30,17 +30,18 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* Custom Scrollbar for list */
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        #map { background-color: #e5e7eb; } 
     </style>
 </head>
 <body class="h-screen flex flex-col md:flex-row overflow-hidden">
 
     <!-- LEFT SIDEBAR: Search & Results -->
-    <div class="w-full md:w-1/3 lg:w-[400px] flex flex-col bg-white shadow-xl z-20 h-full">
+    <div class="w-full md:w-1/3 lg:w-[400px] h-1/2 md:h-full flex flex-col bg-white shadow-xl z-20 relative">
         <!-- Header -->
         <div class="p-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white shrink-0">
             <h1 class="text-2xl font-bold">Find a School</h1>
@@ -73,39 +74,41 @@
             </div>
         </div>
 
-        <!-- Results List -->
-        <div id="resultsContainer" class="flex-1 overflow-y-auto custom-scroll p-4 space-y-3 bg-slate-50 relative">
-            <div id="initialState" class="flex flex-col items-center justify-center h-full text-gray-400 text-center p-6">
+        <!-- Content Area -->
+        <div class="flex-1 relative bg-slate-50">
+            <!-- 1. Initial State -->
+            <div id="initialState" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 text-center p-6 z-0">
                 <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <p>Enter your location to see<br>Orchids schools near you.</p>
             </div>
-            <!-- Cards will be injected here -->
-        </div>
 
-        <!-- No Results Found -->
-        <div id="noResults" class="hidden flex-col items-center justify-center h-64 text-gray-500">
-            <p>No branches found nearby.</p>
+            <!-- 2. No Results State -->
+            <div id="noResults" class="hidden absolute inset-0 flex flex-col items-center justify-center text-gray-500 z-0">
+                <p>No branches found nearby.</p>
+            </div>
+
+            <!-- 3. Results List -->
+            <div id="resultsContainer" class="absolute inset-0 overflow-y-auto custom-scroll p-4 space-y-3 z-10"></div>
         </div>
     </div>
 
     <!-- RIGHT SIDE: Map -->
-    <div class="flex-1 relative h-1/2 md:h-full bg-gray-200">
+    <div class="w-full md:flex-1 h-1/2 md:h-full bg-gray-200 relative">
         <div id="map" class="w-full h-full"></div>
         
         <!-- Loading Overlay -->
         <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
             <div class="loader w-10 h-10 border-4 border-t-orange-500 mb-3"></div>
-            <p class="text-gray-700 font-semibold text-sm animate-pulse">Calculating Routes...</p>
+            <p class="text-gray-700 font-semibold text-sm animate-pulse">Calculating Route...</p>
         </div>
     </div>
 
     <script>
-        // CONFIGURATION
+        // --- CONFIGURATION ---
         const TOMTOM_API_KEY = 'mDqeJr5ga4WsG1WEYehTyFXqro5aTfi5';
-        const MAPTILER_KEY = 'get_your_own_OpIi9ZULNHzrESv6T2vL'; // Keeping generic key, replace if needed
+        const MAPTILER_KEY = 'get_your_own_OpIi9ZULNHzrESv6T2vL'; // Using generic key for visuals
 
         // --- Data: Complete Branch List ---
-        // Note: Duplicates will be removed by the cleanBranches function below
         const rawBranches = [
             // Bengaluru
             { name: 'Orchids The International School, Bannerghatta', area: 'Bannerghatta', city: 'Bengaluru', state: 'Karnataka', pincode: '560083', lat: 12.8710, lon: 77.5997 },
@@ -134,7 +137,6 @@
             { name: 'Orchids The International School, Whitefield', area: 'Whitefield', city: 'Bengaluru', state: 'Karnataka', pincode: '560066', lat: 12.9698, lon: 77.7499 },
             { name: 'Orchids The International School, Yelahanka', area: 'Yelahanka', city: 'Bengaluru', state: 'Karnataka', pincode: '560064', lat: 13.0999, lon: 77.5956 },
             { name: 'Orchids The International School, Yelahanka II', area: 'Yelahanka II', city: 'Bengaluru', state: 'Karnataka', pincode: '560064', lat: 13.1165, lon: 77.6073 },
-            // NEW BENGALURU
             { name: 'Orchids The International School, Budigere Cross', area: 'Budigere Cross', city: 'Bengaluru', state: 'Karnataka', pincode: '560049', lat: 13.0240, lon: 77.7550 },
 
             // Mumbai
@@ -183,7 +185,6 @@
             { name: 'Orchids The International School, Pulianthope', area: 'Pulianthope', city: 'Chennai', state: 'Tamil Nadu', pincode: '600012', lat: 13.1064, lon: 80.2642 },
             { name: 'Orchids The International School, Thoraipakkam', area: 'Thoraipakkam', city: 'Chennai', state: 'Tamil Nadu', pincode: '600097', lat: 12.9511, lon: 80.2411 },
             { name: 'Orchids The International School, Velachery', area: 'Velachery', city: 'Chennai', state: 'Tamil Nadu', pincode: '600042', lat: 12.9785, lon: 80.2185 },
-            // NEW CHENNAI
             { name: 'Orchids The International School, Vandalur', area: 'Vandalur', city: 'Chennai', state: 'Tamil Nadu', pincode: '600048', lat: 12.8916, lon: 80.0818 },
 
             // Kolkata
@@ -208,17 +209,17 @@
             // Delhi
             { name: 'Orchids The International School, Dwarka Sector-19', area: 'Dwarka Sector-19', city: 'Delhi', state: 'Delhi', pincode: '110075', lat: 28.5835, lon: 77.0505 },
 
-            // Chh Sambhaji Nagar (Aurangabad) - NEW
+            // Chh Sambhaji Nagar (Aurangabad)
             { name: 'Orchids The International School, TCH Adgaon', area: 'TCH Adgaon', city: 'Chh Sambhabji Nagar', state: 'Maharashtra', pincode: '422003', lat: 20.0266, lon: 73.8229 }, 
             { name: 'Orchids The International School, N6 Cidco', area: 'N6 Cidco', city: 'Aurangabad', state: 'Maharashtra', pincode: '431003', lat: 19.8700, lon: 75.3500 },
 
             // Ahmednagar
             { name: 'Orchids The International School, Dhangarwadi', area: 'Dhangarwadi', city: 'Ahmednagar', state: 'Maharashtra', pincode: '414005', lat: 19.1413, lon: 74.7937 },
 
-            // Rohtak - NEW
+            // Rohtak
             { name: 'Orchids The International School, Gohana Road', area: 'Gohana Road', city: 'Rohtak', state: 'Haryana', pincode: '124001', lat: 28.8955, lon: 76.5894 },
 
-            // Tumkur - NEW/UPDATED
+            // Tumkur
             { name: 'Orchids The International School, SiraGate', area: 'SiraGate', city: 'Tumakuru', state: 'Karnataka', pincode: '572106', lat: 13.3618, lon: 77.0945 },
 
             // Nagpur
@@ -230,7 +231,7 @@
             // Jabalpur
             { name: 'Orchids The International School, Bhedaghat Road', area: 'Bhedaghat Road', city: 'Jabalpur', state: 'Madhya Pradesh', pincode: '482003', lat: 23.1367, lon: 79.8248 },
 
-            // Hubli-Dharwad - NEW/UPDATED
+            // Hubli-Dharwad
             { name: 'Orchids The International School, Charantimath Gardens', area: 'Charantimath Gardens', city: 'Dharwad', state: 'Karnataka', pincode: '580001', lat: 15.4589, lon: 75.0078 },
             { name: 'Orchids The International School, Airport Road', area: 'Airport Road', city: 'Hubballi', state: 'Karnataka', pincode: '580027', lat: 15.3647, lon: 75.0849 },
         ];
@@ -248,18 +249,89 @@
 
         const branches = removeDuplicates(rawBranches);
 
-        // --- Logic ---
-        
-        maptilersdk.config.apiKey = MAPTILER_KEY;
-        const map = new maptilersdk.Map({
-            container: 'map',
-            style: maptilersdk.MapStyle.STREETS,
-            center: [78.9629, 20.5937], // India center
-            zoom: 4
-        });
-
+        // --- GLOBAL STATE ---
+        let map;
         let currentMarkers = [];
-        let currentRouteLayerId = null;
+        let currentUserMarker = null; 
+        let searchSessionId = 0; 
+
+        // Initialize Map (MapTiler)
+        function initMap() {
+            try {
+                maptilersdk.config.apiKey = MAPTILER_KEY;
+                map = new maptilersdk.Map({
+                    container: 'map',
+                    style: maptilersdk.MapStyle.STREETS,
+                    center: [78.9629, 20.5937], // India center
+                    zoom: 4
+                });
+                
+                // FORCE RESIZE after load
+                map.on('load', () => {
+                    map.resize();
+                });
+
+                // Add window resize listener
+                window.addEventListener('resize', () => {
+                    if(map) map.resize();
+                });
+                
+            } catch(e) {
+                console.error("Map initialization failed:", e);
+                // alert("Map failed to load. Please check your internet connection.");
+            }
+        }
+
+        // Initialize map on load
+        window.addEventListener('load', initMap);
+
+        // --- MAP FUNCTIONS ---
+
+        // Clean map state (Markers & Route) safely
+        function clearMap() {
+             // Clear Branch Markers
+             currentMarkers.forEach(m => m.remove());
+             currentMarkers = [];
+
+             // Clear User Marker
+             if (currentUserMarker) {
+                 currentUserMarker.remove();
+                 currentUserMarker = null;
+             }
+
+             if(!map) return;
+
+             // Clear Route Layers & Source SAFELY
+             try {
+                 if (map.getLayer('route-layer')) map.removeLayer('route-layer');
+                 if (map.getLayer('route-outline')) map.removeLayer('route-outline');
+                 if (map.getSource('route-source')) map.removeSource('route-source');
+             } catch(e) { console.log('Clear map error', e); }
+        }
+
+        // Add a marker safely
+        function addMarker(lat, lon, color, popupHTML) {
+            if(!map) return null;
+            try {
+                const markerElement = document.createElement('div');
+                // Use default marker style if no color/icon logic provided, or customize
+                // MapTiler SDK markers are standard
+                const marker = new maptilersdk.Marker({ color: color })
+                    .setLngLat([lon, lat])
+                    .setPopup(new maptilersdk.Popup().setHTML(popupHTML))
+                    .addTo(map);
+                return marker;
+            } catch(e) { console.log('Add marker error', e); return null; }
+        }
+
+        // Fly to location safely
+        function flyToLocation(lon, lat, zoomLevel) {
+            if(map) {
+                try {
+                    map.flyTo({ center: [lon, lat], zoom: zoomLevel });
+                } catch(e) { console.log('Fly error', e); }
+            }
+        }
 
         // 1. Basic Haversine (Crow flies) for initial filtering
         function getCrowDistance(lat1, lon1, lat2, lon2) {
@@ -273,67 +345,34 @@
             return R * c;
         }
 
-        // 2. Fetch Accurate Road Distance for TOP N results (Sequentially to avoid Rate Limits)
-        async function getRoadDistances(userLat, userLon, topBranches) {
-            const results = [];
-            
-            for (const branch of topBranches) {
-                const url = `https://api.tomtom.com/routing/1/calculateRoute/${userLat},${userLon}:${branch.lat},${branch.lon}/json?instructionsType=text&language=en-US&key=${TOMTOM_API_KEY}`;
-                
-                try {
-                    // Small delay to be kind to the free API tier
-                    await new Promise(r => setTimeout(r, 100));
-                    
-                    const response = await fetch(url);
-                    
-                    if (!response.ok) throw new Error(`API Error ${response.status}`);
-                    
-                    const data = await response.json();
-                    
-                    if (data.routes && data.routes.length > 0) {
-                        const meters = data.routes[0].summary.lengthInMeters;
-                        const km = (meters / 1000).toFixed(1);
-                        const timeSeconds = data.routes[0].summary.travelTimeInSeconds;
-                        const timeMins = Math.round(timeSeconds / 60);
-                        
-                        results.push({ 
-                            ...branch, 
-                            roadDistance: parseFloat(km), 
-                            travelTime: timeMins 
-                        });
-                    } else {
-                        // Fallback if route not found
-                        results.push(branch);
-                    }
-                } catch (e) {
-                    console.warn(`Routing failed for ${branch.name}:`, e);
-                    // Fallback to crow distance if API fails/limits
-                    results.push(branch); 
-                }
-            }
-
-            return results;
-        }
-
-        // 3. Draw Route on Map
+        // 3. Draw Route on Map (On Demand) - Uses TomTom API for Routing, MapTiler for Drawing
         async function drawRoute(userLat, userLon, destLat, destLon) {
-            // Remove previous route
-            if (currentRouteLayerId) {
+            if(!map) { alert("Map not loaded properly."); return; }
+
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.classList.remove('hidden');
+
+            const currentSessionId = searchSessionId;
+
+            // Remove previous route SAFELY
+            try {
                 if (map.getLayer('route-layer')) map.removeLayer('route-layer');
                 if (map.getLayer('route-outline')) map.removeLayer('route-outline');
                 if (map.getSource('route-source')) map.removeSource('route-source');
-                currentRouteLayerId = null;
-            }
-
+            } catch(e) {}
+            
             const url = `https://api.tomtom.com/routing/1/calculateRoute/${userLat},${userLon}:${destLat},${destLon}/json?instructionsType=text&language=en-US&computeBestOrder=false&routeRepresentation=polyline&key=${TOMTOM_API_KEY}`;
 
             try {
                 const response = await fetch(url);
                 const data = await response.json();
                 
+                loadingOverlay.classList.add('hidden');
+
+                if (currentSessionId !== searchSessionId) return; // Search changed
+
                 if (data.routes && data.routes.length > 0) {
                     const points = data.routes[0].legs[0].points;
-                    // Convert TomTom points {latitude, longitude} to GeoJSON [lon, lat]
                     const coordinates = points.map(p => [p.longitude, p.latitude]);
 
                     const geojson = {
@@ -350,84 +389,101 @@
                         'data': geojson
                     });
 
-                    // Outline for better visibility
                     map.addLayer({
                         'id': 'route-outline',
                         'type': 'line',
                         'source': 'route-source',
                         'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                        'paint': {
-                            'line-color': '#fff', // White outline
-                            'line-width': 8
-                        }
+                        'paint': { 'line-color': '#fff', 'line-width': 8 }
                     });
 
-                    // Main blue line
                     map.addLayer({
                         'id': 'route-layer',
                         'type': 'line',
                         'source': 'route-source',
                         'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                        'paint': {
-                            'line-color': '#3b82f6', // Blue
-                            'line-width': 5
-                        }
+                        'paint': { 'line-color': '#3b82f6', 'line-width': 5 }
                     });
                     
-                    currentRouteLayerId = 'route-layer';
-
-                    // Fit bounds
                     const bounds = new maptilersdk.LngLatBounds();
                     coordinates.forEach(coord => bounds.extend(coord));
                     map.fitBounds(bounds, { padding: 50 });
                 }
             } catch (e) {
                 console.error("Error drawing route:", e);
+                loadingOverlay.classList.add('hidden');
             }
         }
 
         async function findNearbyBranches(userLon, userLat) {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            loadingOverlay.classList.remove('hidden');
-            
-            // 1. Calculate Crow Distance for ALL branches first
+            // 1. Increment Session ID
+            searchSessionId++;
+
+            // 2. Clear old map data
+            clearMap();
+
+            // 3. IMMEDIATE FEEDBACK
+            flyToLocation(userLon, userLat, 11);
+
+            // 4. Calculate Crow Distance ONLY (FAST)
             const allWithDist = branches.map(b => {
                 const dist = getCrowDistance(userLat, userLon, b.lat, b.lon);
-                return { ...b, distance: dist, roadDistance: dist }; // Default roadDist to crow
+                return { ...b, distance: dist, roadDistance: dist }; 
             });
 
-            // 2. Sort by crow distance and take Top 15 (Increased from 10 to check nearby)
+            // 5. SORT ALL
             allWithDist.sort((a, b) => a.distance - b.distance);
-            const topBranches = allWithDist.slice(0, 15);
 
-            // 3. Fetch ACTUAL Road Distance for these (Sequentially)
-            const refinedBranches = await getRoadDistances(userLat, userLon, topBranches);
+            // 6. SMART FILTERING
+            // First, try to get branches within 15km
+            let nearbyBranches = allWithDist.filter(b => b.distance <= 15);
+            let displayMessage = "";
 
-            // 4. Sort again by Road Distance (in case a straight line was deceptive)
-            refinedBranches.sort((a, b) => a.roadDistance - b.roadDistance);
+            // FAILSAFE: If no branches within 15km, take top 3 anyway
+            // This prevents "Nothing Showing" when searching for City Centers far from suburbs
+            if (nearbyBranches.length === 0) {
+                nearbyBranches = allWithDist.slice(0, 3);
+                displayMessage = "No branches within 15km. Showing closest:";
+            }
 
-            loadingOverlay.classList.add('hidden');
-            renderResults(refinedBranches, userLat, userLon);
+            // 7. RENDER
+            renderResults(nearbyBranches, userLat, userLon, displayMessage);
         }
 
-        function renderResults(results, userLat, userLon) {
+        function renderResults(results, userLat, userLon, message) {
             const container = document.getElementById('resultsContainer');
             const noResults = document.getElementById('noResults');
             const initialState = document.getElementById('initialState');
             
+            // Clear only the results container contents (which is now separate from state icons)
             container.innerHTML = '';
+            
+            // Hide state icons
             initialState.classList.add('hidden');
             
-            // Clear markers
-            currentMarkers.forEach(m => m.remove());
-            currentMarkers = [];
+            // Render Warning Message if any
+            if(message) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = "text-xs font-semibold text-orange-600 bg-orange-50 p-2 rounded mb-2 border border-orange-100";
+                msgDiv.textContent = message;
+                container.appendChild(msgDiv);
+            }
 
-            // Add User Marker
-            const userMarkerEl = document.createElement('div');
-            userMarkerEl.className = 'w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg animate-pulse';
-            new maptilersdk.Marker({element: userMarkerEl})
-                .setLngLat([userLon, userLat])
-                .addTo(map);
+            // DEFENSIVE MAP OPS: Add User Marker
+            // Try block prevents crash if map is not ready
+            let bounds = null;
+            if(map) {
+                try {
+                    const userMarkerEl = document.createElement('div');
+                    userMarkerEl.className = 'w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg animate-pulse';
+                    currentUserMarker = new maptilersdk.Marker({element: userMarkerEl})
+                        .setLngLat([userLon, userLat])
+                        .addTo(map);
+                    
+                    bounds = new maptilersdk.LngLatBounds();
+                    bounds.extend([userLon, userLat]);
+                } catch(e) { console.log('User marker error', e); }
+            }
 
             if (results.length === 0) {
                 noResults.classList.remove('hidden');
@@ -435,14 +491,9 @@
             }
             noResults.classList.add('hidden');
 
-            const bounds = new maptilersdk.LngLatBounds();
-            bounds.extend([userLon, userLat]);
-
             results.forEach((branch, index) => {
-                // Determine if we used road distance or fallback
-                const distDisplay = branch.travelTime 
-                    ? `<span class="text-green-600 font-bold">${branch.roadDistance} km</span> <span class="text-xs text-gray-500">(${branch.travelTime} mins driving)</span>`
-                    : `<span class="text-gray-600">${branch.roadDistance.toFixed(1)} km</span> <span class="text-xs text-gray-400">(Straight Line)</span>`;
+                // Simplified Distance Display (Fast)
+                const distDisplay = `<span class="text-gray-600 font-bold">${branch.distance.toFixed(1)} km</span> <span class="text-xs text-gray-400">(Direct)</span>`;
 
                 const card = document.createElement('div');
                 card.className = 'branch-card bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-2 cursor-pointer';
@@ -467,52 +518,78 @@
                     </div>
                 `;
                 
-                // Clicking card centers map
                 card.addEventListener('click', (e) => {
                     if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
-                         map.flyTo({ center: [branch.lon, branch.lat], zoom: 14 });
+                         flyToLocation(branch.lon, branch.lat, 14);
                     }
                 });
 
                 container.appendChild(card);
 
-                // Add Map Marker
-                const marker = new maptilersdk.Marker({color: "#f97316"})
-                    .setLngLat([branch.lon, branch.lat])
-                    .setPopup(new maptilersdk.Popup().setHTML(`<b class="text-black">${branch.area}</b><br>${branch.roadDistance} km`))
-                    .addTo(map);
+                // Add map marker (safely)
+                const marker = addMarker(branch.lat, branch.lon, "#f97316", `<b class="text-black">${branch.area}</b><br>${branch.distance.toFixed(1)} km`);
+                if(marker) currentMarkers.push(marker);
                 
-                currentMarkers.push(marker);
-                bounds.extend([branch.lon, branch.lat]);
+                if(bounds) bounds.extend([branch.lon, branch.lat]);
             });
 
-            map.fitBounds(bounds, { padding: 50 });
+            if(map && currentMarkers.length > 0 && bounds) {
+                try { map.fitBounds(bounds, { padding: 50 }); } catch(e) {}
+            }
         }
 
         // --- Event Listeners ---
         document.getElementById('searchBtn').addEventListener('click', async () => {
             const query = document.getElementById('manualLocation').value;
+            const errorBox = document.getElementById('geocodeError');
+            const container = document.getElementById('resultsContainer');
+            const noResults = document.getElementById('noResults');
+            const initialState = document.getElementById('initialState');
+
+            errorBox.classList.add('hidden');
+            
             if(!query) return;
 
-            // Simple Geocoding via MapTiler
+            // INSTANT CLEAR: Hide previous results immediately
+            container.innerHTML = ''; 
+            noResults.classList.add('hidden');
+            
+            // Show loading state (using initial state as placeholder)
+            if(initialState) initialState.classList.remove('hidden'); 
+
             try {
-                const resp = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(query)}.json?key=${MAPTILER_KEY}`);
+                // Using TomTom Geocoding for better search results
+                const url = `https://api.tomtom.com/search/2/geocode/${encodeURIComponent(query)}.json?key=${TOMTOM_API_KEY}`;
+                const resp = await fetch(url);
                 const data = await resp.json();
-                if(data.features && data.features.length > 0) {
-                    const [lon, lat] = data.features[0].center;
+                
+                if(data.results && data.results.length > 0) {
+                    const lat = data.results[0].position.lat;
+                    const lon = data.results[0].position.lon;
+                    if(initialState) initialState.classList.add('hidden'); 
                     findNearbyBranches(lon, lat);
                 } else {
-                    document.getElementById('geocodeError').classList.remove('hidden');
+                    if(initialState) initialState.classList.add('hidden');
+                    errorBox.classList.remove('hidden');
                 }
             } catch(e) {
                 console.error(e);
-                document.getElementById('geocodeError').classList.remove('hidden');
+                if(initialState) initialState.classList.add('hidden');
+                errorBox.classList.remove('hidden');
             }
         });
 
         document.getElementById('locateMeBtn').addEventListener('click', () => {
+            const initialState = document.getElementById('initialState');
+            
             if (navigator.geolocation) {
+                // Clear previous results instantly
+                document.getElementById('resultsContainer').innerHTML = '';
+                document.getElementById('noResults').classList.add('hidden');
+                if(initialState) initialState.classList.remove('hidden');
+
                 navigator.geolocation.getCurrentPosition(pos => {
+                    if(initialState) initialState.classList.add('hidden');
                     findNearbyBranches(pos.coords.longitude, pos.coords.latitude);
                 }, () => {
                     document.getElementById('statusMessage').textContent = "Unable to retrieve location.";
