@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORCHIDS Branch Search (Hybrid Engine)</title>
+    <title>ORCHIDS Branch Search</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- MapTiler SDK (Visuals) -->
-    <link href="https://cdn.maptiler.com/maptiler-sdk-js/v1.1.1/maptiler-sdk.css" rel="stylesheet" />
-    <script src="https://cdn.maptiler.com/maptiler-sdk-js/v1.1.1/maptiler-sdk.umd.min.js"></script>
+    <!-- Leaflet CSS (Free Map Engine) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
@@ -35,7 +37,45 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        #map { background-color: #e5e7eb; } 
+        #map { background-color: #e5e7eb; z-index: 1; } 
+        
+        /* Custom Marker Styles */
+        .custom-marker-pin {
+            width: 30px;
+            height: 30px;
+            border-radius: 50% 50% 50% 0;
+            background: #f97316;
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -15px 0 0 -15px;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+            border: 2px solid white;
+        }
+        .custom-marker-pin::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            margin: 8px 0 0 8px;
+            background: #fff;
+            position: absolute;
+            border-radius: 50%;
+        }
+        .user-marker-pin {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #3b82f6, 0 4px 6px rgba(0,0,0,0.3);
+            animation: pulse-ring 2s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col md:flex-row overflow-hidden">
@@ -46,6 +86,7 @@
         <div class="p-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white shrink-0">
             <h1 class="text-2xl font-bold">Find a School</h1>
             <p class="text-orange-100 text-sm mt-1">Locate the nearest ORCHIDS campus</p>
+            <p class="text-orange-100 text-sm mt-1">Built with ❤ by Pritesh Rajput</p>
         </div>
 
         <!-- Search Inputs -->
@@ -106,7 +147,6 @@
     <script>
         // --- CONFIGURATION ---
         const TOMTOM_API_KEY = 'mDqeJr5ga4WsG1WEYehTyFXqro5aTfi5';
-        const MAPTILER_KEY = 'ZHIt7spE5S75yB0bGViK'; 
 
         // --- Data: Complete Branch List ---
         const rawBranches = [
@@ -252,33 +292,24 @@
         // --- GLOBAL STATE ---
         let map;
         let currentMarkers = [];
+        let currentRouteLayer = null;
+        let currentRouteOutline = null;
         let currentUserMarker = null; 
         let searchSessionId = 0; 
 
-        // Initialize Map (MapTiler)
+        // Initialize Map (Leaflet)
         function initMap() {
             try {
-                maptilersdk.config.apiKey = MAPTILER_KEY;
-                map = new maptilersdk.Map({
-                    container: 'map',
-                    style: maptilersdk.MapStyle.STREETS,
-                    center: [78.9629, 20.5937], // India center
-                    zoom: 4
-                });
+                // Initialize Leaflet map with OpenStreetMap tiles (FREE, No Key Required)
+                map = L.map('map').setView([20.5937, 78.9629], 4);
                 
-                // FORCE RESIZE after load
-                map.on('load', () => {
-                    map.resize();
-                });
-
-                // Add window resize listener
-                window.addEventListener('resize', () => {
-                    if(map) map.resize();
-                });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
                 
             } catch(e) {
                 console.error("Map initialization failed:", e);
-                // alert("Map failed to load. Please check your internet connection.");
             }
         }
 
@@ -290,36 +321,44 @@
         // Clean map state (Markers & Route) safely
         function clearMap() {
              // Clear Branch Markers
-             currentMarkers.forEach(m => m.remove());
+             currentMarkers.forEach(m => map.removeLayer(m));
              currentMarkers = [];
 
              // Clear User Marker
              if (currentUserMarker) {
-                 currentUserMarker.remove();
+                 map.removeLayer(currentUserMarker);
                  currentUserMarker = null;
              }
 
              if(!map) return;
 
-             // Clear Route Layers & Source SAFELY
-             try {
-                 if (map.getLayer('route-layer')) map.removeLayer('route-layer');
-                 if (map.getLayer('route-outline')) map.removeLayer('route-outline');
-                 if (map.getSource('route-source')) map.removeSource('route-source');
-             } catch(e) { console.log('Clear map error', e); }
+             // Clear Route Layers
+             if (currentRouteLayer) {
+                 map.removeLayer(currentRouteLayer);
+                 currentRouteLayer = null;
+             }
+             if (currentRouteOutline) {
+                 map.removeLayer(currentRouteOutline);
+                 currentRouteOutline = null;
+             }
         }
 
         // Add a marker safely
-        function addMarker(lat, lon, color, popupHTML) {
+        function addMarker(lat, lon, popupHTML) {
             if(!map) return null;
             try {
-                const markerElement = document.createElement('div');
-                // Use default marker style if no color/icon logic provided, or customize
-                // MapTiler SDK markers are standard
-                const marker = new maptilersdk.Marker({ color: color })
-                    .setLngLat([lon, lat])
-                    .setPopup(new maptilersdk.Popup().setHTML(popupHTML))
-                    .addTo(map);
+                // Custom Orange Icon using DivIcon to match original style
+                const customIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: '<div class="custom-marker-pin"></div>',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 30],
+                    popupAnchor: [0, -32]
+                });
+
+                const marker = L.marker([lat, lon], {icon: customIcon})
+                    .addTo(map)
+                    .bindPopup(popupHTML);
                 return marker;
             } catch(e) { console.log('Add marker error', e); return null; }
         }
@@ -327,9 +366,7 @@
         // Fly to location safely
         function flyToLocation(lon, lat, zoomLevel) {
             if(map) {
-                try {
-                    map.flyTo({ center: [lon, lat], zoom: zoomLevel });
-                } catch(e) { console.log('Fly error', e); }
+                map.flyTo([lat, lon], zoomLevel);
             }
         }
 
@@ -345,7 +382,7 @@
             return R * c;
         }
 
-        // 3. Draw Route on Map (On Demand) - Uses TomTom API for Routing, MapTiler for Drawing
+        // 3. Draw Route on Map (On Demand) - Uses TomTom API for Routing, Leaflet for Drawing
         async function drawRoute(userLat, userLon, destLat, destLon) {
             if(!map) { alert("Map not loaded properly."); return; }
 
@@ -354,12 +391,9 @@
 
             const currentSessionId = searchSessionId;
 
-            // Remove previous route SAFELY
-            try {
-                if (map.getLayer('route-layer')) map.removeLayer('route-layer');
-                if (map.getLayer('route-outline')) map.removeLayer('route-outline');
-                if (map.getSource('route-source')) map.removeSource('route-source');
-            } catch(e) {}
+            // Remove previous route
+            if (currentRouteLayer) map.removeLayer(currentRouteLayer);
+            if (currentRouteOutline) map.removeLayer(currentRouteOutline);
             
             const url = `https://api.tomtom.com/routing/1/calculateRoute/${userLat},${userLon}:${destLat},${destLon}/json?instructionsType=text&language=en-US&computeBestOrder=false&routeRepresentation=polyline&key=${TOMTOM_API_KEY}`;
 
@@ -373,41 +407,27 @@
 
                 if (data.routes && data.routes.length > 0) {
                     const points = data.routes[0].legs[0].points;
-                    const coordinates = points.map(p => [p.longitude, p.latitude]);
+                    // Convert TomTom points {latitude, longitude} to Leaflet [lat, lon]
+                    const latlngs = points.map(p => [p.latitude, p.longitude]);
 
-                    const geojson = {
-                        "type": "Feature",
-                        "properties": {},
-                        "geometry": {
-                            "type": "LineString",
-                            "coordinates": coordinates
-                        }
-                    };
+                    // Draw Outline (White)
+                    currentRouteOutline = L.polyline(latlngs, {
+                        color: 'white',
+                        weight: 8,
+                        opacity: 0.9,
+                        lineJoin: 'round'
+                    }).addTo(map);
 
-                    map.addSource('route-source', {
-                        'type': 'geojson',
-                        'data': geojson
-                    });
-
-                    map.addLayer({
-                        'id': 'route-outline',
-                        'type': 'line',
-                        'source': 'route-source',
-                        'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                        'paint': { 'line-color': '#fff', 'line-width': 8 }
-                    });
-
-                    map.addLayer({
-                        'id': 'route-layer',
-                        'type': 'line',
-                        'source': 'route-source',
-                        'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                        'paint': { 'line-color': '#3b82f6', 'line-width': 5 }
-                    });
+                    // Draw Route (Blue)
+                    currentRouteLayer = L.polyline(latlngs, {
+                        color: '#3b82f6',
+                        weight: 5,
+                        opacity: 1,
+                        lineJoin: 'round'
+                    }).addTo(map);
                     
-                    const bounds = new maptilersdk.LngLatBounds();
-                    coordinates.forEach(coord => bounds.extend(coord));
-                    map.fitBounds(bounds, { padding: 50 });
+                    // Fit bounds to route
+                    map.fitBounds(currentRouteLayer.getBounds(), { padding: [50, 50] });
                 }
             } catch (e) {
                 console.error("Error drawing route:", e);
@@ -455,7 +475,7 @@
             const noResults = document.getElementById('noResults');
             const initialState = document.getElementById('initialState');
             
-            // Clear only the results container contents (which is now separate from state icons)
+            // Clear only the results container contents
             container.innerHTML = '';
             
             // Hide state icons
@@ -469,20 +489,18 @@
                 container.appendChild(msgDiv);
             }
 
-            // DEFENSIVE MAP OPS: Add User Marker
-            // Try block prevents crash if map is not ready
-            let bounds = null;
+            // Add User Marker
             if(map) {
-                try {
-                    const userMarkerEl = document.createElement('div');
-                    userMarkerEl.className = 'w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg animate-pulse';
-                    currentUserMarker = new maptilersdk.Marker({element: userMarkerEl})
-                        .setLngLat([userLon, userLat])
-                        .addTo(map);
-                    
-                    bounds = new maptilersdk.LngLatBounds();
-                    bounds.extend([userLon, userLat]);
-                } catch(e) { console.log('User marker error', e); }
+                const userIcon = L.divIcon({
+                    className: 'user-marker',
+                    html: '<div class="user-marker-pin"></div>',
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+                
+                currentUserMarker = L.marker([userLat, userLon], {icon: userIcon})
+                    .addTo(map)
+                    .bindPopup("Your Location");
             }
 
             if (results.length === 0) {
@@ -490,6 +508,10 @@
                 return;
             }
             noResults.classList.add('hidden');
+
+            // Collect bounds to zoom to fit all results
+            const bounds = L.latLngBounds();
+            bounds.extend([userLat, userLon]);
 
             results.forEach((branch, index) => {
                 // Simplified Distance Display (Fast)
@@ -526,15 +548,15 @@
 
                 container.appendChild(card);
 
-                // Add map marker (safely)
-                const marker = addMarker(branch.lat, branch.lon, "#f97316", `<b class="text-black">${branch.area}</b><br>${branch.distance.toFixed(1)} km`);
+                // Add map marker
+                const marker = addMarker(branch.lat, branch.lon, `<b class="text-black">${branch.area}</b><br>${branch.distance.toFixed(1)} km`);
                 if(marker) currentMarkers.push(marker);
                 
-                if(bounds) bounds.extend([branch.lon, branch.lat]);
+                bounds.extend([branch.lat, branch.lon]);
             });
 
-            if(map && currentMarkers.length > 0 && bounds) {
-                try { map.fitBounds(bounds, { padding: 50 }); } catch(e) {}
+            if(map && currentMarkers.length > 0) {
+                map.fitBounds(bounds, { padding: [50, 50] });
             }
         }
 
@@ -554,11 +576,11 @@
             container.innerHTML = ''; 
             noResults.classList.add('hidden');
             
-            // Show loading state (using initial state as placeholder)
+            // Show loading state
             if(initialState) initialState.classList.remove('hidden'); 
 
             try {
-                // Using TomTom Geocoding for better search results
+                // Using TomTom Geocoding for better search results (TomTom still works fine, just map display was broken)
                 const url = `https://api.tomtom.com/search/2/geocode/${encodeURIComponent(query)}.json?key=${TOMTOM_API_KEY}`;
                 const resp = await fetch(url);
                 const data = await resp.json();
@@ -576,6 +598,13 @@
                 console.error(e);
                 if(initialState) initialState.classList.add('hidden');
                 errorBox.classList.remove('hidden');
+            }
+        });
+
+        // Add Enter key support
+        document.getElementById('manualLocation').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                document.getElementById('searchBtn').click();
             }
         });
 
