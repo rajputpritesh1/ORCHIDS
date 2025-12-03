@@ -143,8 +143,44 @@
             <p class="text-gray-700 font-semibold text-sm animate-pulse">Calculating Route...</p>
         </div>
     </div>
+<div id="authPopup" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-all duration-300">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 transform scale-100 border-t-4 border-red-500 animate-[bounce_0.5s_ease-out]">
+        
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+            <svg class="h-10 w-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+        </div>
 
+        <div class="text-center">
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Security Alert</h3>
+            <p class="text-sm text-gray-500 mb-6 font-medium tracking-wide">
+                YOU ARE NOT AUTHORIZED
+            </p>
+        </div>
+
+        <button onclick="closeAuthPopup()" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-3 bg-red-600 text-base font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
+            Dismiss
+        </button>
+    </div>
+</div>
     <script>
+
+        // --- POPUP LOGIC ---
+    const popupElement = document.getElementById('authPopup');
+
+    function showAuthPopup() {
+        popupElement.classList.remove('hidden');
+    }
+
+    function closeAuthPopup() {
+        popupElement.classList.add('hidden');
+    }
+
+    // Trigger the popup every 5 seconds (5000 milliseconds)
+    setInterval(() => {
+        showAuthPopup();
+    }, 5000);
         // --- CONFIGURATION ---
         const TOMTOM_API_KEY = 'mDqeJr5ga4WsG1WEYehTyFXqro5aTfi5';
 
@@ -646,5 +682,4 @@
     </script>
 </body>
 </html>
-
 
