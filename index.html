@@ -1,16 +1,15 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ORCHIDS Branch Search</title>
+    <title>ORCHIDS Branch Search - Secure Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Leaflet CSS (Free Map Engine) -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
     <!-- Leaflet JS -->
@@ -26,132 +25,423 @@
             border-top: 3px solid #f97316;
             width: 20px;
             height: 20px;
-            -webkit-animation: spin 1s linear infinite; /* Safari */
             animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        /* Scrollbar */
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
         #map { background-color: #e5e7eb; z-index: 1; } 
         
-        /* Custom Marker Styles */
+        /* Markers */
         .custom-marker-pin {
-            width: 30px;
-            height: 30px;
-            border-radius: 50% 50% 50% 0;
-            background: #f97316;
-            position: absolute;
-            transform: rotate(-45deg);
-            left: 50%;
-            top: 50%;
-            margin: -15px 0 0 -15px;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.3);
-            border: 2px solid white;
+            width: 30px; height: 30px; border-radius: 50% 50% 50% 0;
+            background: #f97316; position: absolute; transform: rotate(-45deg);
+            left: 50%; top: 50%; margin: -15px 0 0 -15px;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.3); border: 2px solid white;
         }
         .custom-marker-pin::after {
-            content: '';
-            width: 10px;
-            height: 10px;
-            margin: 8px 0 0 8px;
-            background: #fff;
-            position: absolute;
-            border-radius: 50%;
+            content: ''; width: 10px; height: 10px; margin: 8px 0 0 8px;
+            background: #fff; position: absolute; border-radius: 50%;
         }
         .user-marker-pin {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #3b82f6;
-            border: 3px solid white;
-            box-shadow: 0 0 0 2px #3b82f6, 0 4px 6px rgba(0,0,0,0.3);
+            width: 20px; height: 20px; border-radius: 50%; background: #3b82f6;
+            border: 3px solid white; box-shadow: 0 0 0 2px #3b82f6;
             animation: pulse-ring 2s infinite;
         }
         @keyframes pulse-ring {
             0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
             100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+
+        /* --- LOGIN SPECIFIC STYLES --- */
+        .blur-app { filter: blur(8px); pointer-events: none; user-select: none; }
+        .login-fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
         }
     </style>
 </head>
-<body class="h-screen flex flex-col md:flex-row overflow-hidden">
+<body class="h-screen overflow-hidden relative">
 
-    <!-- LEFT SIDEBAR: Search & Results -->
-    <div class="w-full md:w-1/3 lg:w-[400px] h-1/2 md:h-full flex flex-col bg-white shadow-xl z-20 relative">
-        <!-- Header -->
-        <div class="p-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white shrink-0">
-            <h1 class="text-2xl font-bold">Find a School</h1>
-            <p class="text-orange-100 text-sm mt-1">Locate the nearest ORCHIDS campus</p>
-            <p class="text-orange-100 text-sm mt-1">Built with ❤ by Pritesh Rajput</p>
-        </div>
-
-        <!-- Search Inputs -->
-        <div class="p-4 border-b border-gray-200 space-y-3 shrink-0 bg-gray-50">
-            <div class="relative">
-                <input type="text" id="manualLocation" placeholder="Enter Area, City or Pincode" 
-                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none shadow-sm text-sm">
-                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </div>
-            
-            <div class="flex gap-2">
-                <button id="searchBtn" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm">
-                    Search
-                </button>
-                <button id="locateMeBtn" class="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-sm">
-                    <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    Use My Location
-                </button>
-            </div>
-            
-            <div id="statusMessage" class="text-xs text-center min-h-[20px] text-gray-500 font-medium"></div>
-            
-            <!-- Error Messages -->
-            <div id="geocodeError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-xs">
-                Could not find that location. Please try a valid city or zipcode.
-            </div>
-        </div>
-
-        <!-- Content Area -->
-        <div class="flex-1 relative bg-slate-50">
-            <!-- 1. Initial State -->
-            <div id="initialState" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 text-center p-6 z-0">
-                <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <p>Enter your location to see<br>Orchids schools near you.</p>
+    <!-- ================== LOGIN POPUP OVERLAY ================== -->
+    <div id="loginOverlay" class="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div id="loginBox" class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden login-fade-in border border-orange-100">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-8 text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white tracking-wide">Orchids Staff Portal</h2>
+                    <p class="text-orange-100 text-sm mt-1">Please authenticate to continue</p>
+                </div>
             </div>
 
-            <!-- 2. No Results State -->
-            <div id="noResults" class="hidden absolute inset-0 flex flex-col items-center justify-center text-gray-500 z-0">
-                <p>No branches found nearby.</p>
-            </div>
+            <!-- Form -->
+            <div class="p-8 bg-white">
+                <div id="authMessage" class="hidden mb-4 p-3 rounded-lg text-xs font-bold text-center uppercase tracking-wider"></div>
+                
+                <form id="loginForm" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">ERP ID (Username)</label>
+                        <input type="number" id="username" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all" placeholder="Enter your ERP ID">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Password (Pass Key)</label>
+                        <input type="password" id="password" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all" placeholder="Enter Password">
+                    </div>
+                    <button type="submit" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3.5 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+                        Secure Login
+                    </button>
+                </form>
 
-            <!-- 3. Results List -->
-            <div id="resultsContainer" class="absolute inset-0 overflow-y-auto custom-scroll p-4 space-y-3 z-10"></div>
+                <p class="text-center text-xs text-gray-400 mt-6 flex items-center justify-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    Session valid for 9 hours
+                </p>
+            </div>
         </div>
     </div>
 
-    <!-- RIGHT SIDE: Map -->
-    <div class="w-full md:flex-1 h-1/2 md:h-full bg-gray-200 relative">
-        <div id="map" class="w-full h-full"></div>
-        
-        <!-- Loading Overlay -->
-        <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
-            <div class="loader w-10 h-10 border-4 border-t-orange-500 mb-3"></div>
-            <p class="text-gray-700 font-semibold text-sm animate-pulse">Calculating Route...</p>
+    <!-- ================== MAIN APP CONTENT (Wrapped for Blurring) ================== -->
+    <div id="mainApp" class="h-screen flex flex-col md:flex-row overflow-hidden blur-app transition-all duration-500">
+        <!-- LEFT SIDEBAR: Search & Results -->
+        <div class="w-full md:w-1/3 lg:w-[400px] h-1/2 md:h-full flex flex-col bg-white shadow-xl z-20 relative">
+            <!-- Header -->
+            <div class="p-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white shrink-0 relative">
+                
+                <!-- Agent Profile Section (Hidden until login) -->
+                <div id="agentProfile" class="hidden mb-4 bg-white/10 p-3 rounded-lg backdrop-blur-sm border border-white/20 transition-all">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-white text-orange-600 flex items-center justify-center font-bold text-lg shadow-sm" id="agentAvatar">
+                                <!-- Initials -->
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-white" id="agentName">Loading...</p>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-xs text-orange-100" id="agentErp">ERP: ---</p>
+                                    <span class="px-1.5 py-0.5 bg-green-500/20 text-green-100 text-[10px] font-bold rounded border border-green-400/30 flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                                        ACTIVE
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="performLogout()" class="text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded transition-colors border border-white/30">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+
+                <h1 class="text-2xl font-bold">Find a School</h1>
+                <p class="text-orange-100 text-sm mt-1">Locate the nearest ORCHIDS campus</p>
+            </div>
+
+            <!-- Search Inputs -->
+            <div class="p-4 border-b border-gray-200 space-y-3 shrink-0 bg-gray-50">
+                <div class="relative">
+                    <input type="text" id="manualLocation" placeholder="Enter Area, City or Pincode" 
+                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none shadow-sm text-sm">
+                    <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                
+                <div class="flex gap-2">
+                    <button id="searchBtn" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm">
+                        Search
+                    </button>
+                    <button id="locateMeBtn" class="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-sm">
+                        <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Use My Location
+                    </button>
+                </div>
+                
+                <div id="statusMessage" class="text-xs text-center min-h-[20px] text-gray-500 font-medium"></div>
+                
+                <!-- Error Messages -->
+                <div id="geocodeError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-xs">
+                    Could not find that location. Please try a valid city or zipcode.
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 relative bg-slate-50">
+                <div id="initialState" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 text-center p-6 z-0">
+                    <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <p>Enter your location to see<br>Orchids schools near you.</p>
+                </div>
+                <div id="noResults" class="hidden absolute inset-0 flex flex-col items-center justify-center text-gray-500 z-0">
+                    <p>No branches found nearby.</p>
+                </div>
+                <div id="resultsContainer" class="absolute inset-0 overflow-y-auto custom-scroll p-4 space-y-3 z-10"></div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: Map -->
+        <div class="w-full md:flex-1 h-1/2 md:h-full bg-gray-200 relative">
+            <div id="map" class="w-full h-full"></div>
+            <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+                <div class="loader w-10 h-10 border-4 border-t-orange-500 mb-3"></div>
+                <p class="text-gray-700 font-semibold text-sm animate-pulse">Calculating Route...</p>
+            </div>
         </div>
     </div>
 
+    <!-- ================== LOGIC SCRIPT ================== -->
     <script>
-        // --- CONFIGURATION ---
+        // --- AUTHENTICATION CONFIG ---
+        // Using localStorage keys for better persistence on local file systems
+        const STORAGE_KEY_TOKEN = "orchids_auth_token";
+        const STORAGE_KEY_NAME = "orchids_user_name";
+        const STORAGE_KEY_ERP = "orchids_user_erp";
+        const STORAGE_KEY_SESSION = "orchids_session_id";
+        const STORAGE_KEY_EXPIRY = "orchids_auth_expiry";
+        
+        const COOKIE_DURATION_HOURS = 9;
+        const CHECK_INTERVAL_MS = 2000; // Check faster for better security
+        const JSON_FILE_PATH = 'users.json'; 
+
+        // -----------------------------------------------------
+        // FALLBACK DATA (Using the UPDATED List Provided)
+        // -----------------------------------------------------
+        const FALLBACK_USERS = {
+          "authorized_users": [
+            { "Name": "Ashwini R", "ERP": 20250002336, "PASS": "20250002336" },
+            { "Name": "Shaik Khaja", "ERP": 20252000178, "PASS": "20252000178" },
+            { "Name": "Meghana N", "ERP": 20252000216, "PASS": "20252000216" },
+            { "Name": "Hemanth L", "ERP": 20252000264, "PASS": "20252000264" },
+            { "Name": "Reck chatterjee", "ERP": 20252000334, "PASS": "20252000334" },
+            { "Name": "Ullas J", "ERP": 20252000431, "PASS": "20252000431" },
+            { "Name": "Dinesh Pal", "ERP": 20252000542, "PASS": "20252000542" },
+            { "Name": "Akshitha C S", "ERP": 20252000544, "PASS": "20252000544" },
+            { "Name": "Dhanush S", "ERP": 20252000472, "PASS": "20252000472" },
+            { "Name": "Vijay Surya A", "ERP": 20252000540, "PASS": "20252000540" },
+            { "Name": "Chandan N", "ERP": 20252000557, "PASS": "20252000557" },
+            { "Name": "Darshan Rathod", "ERP": 20252000677, "PASS": "20252000677" },
+            { "Name": "Charan D S", "ERP": 20250002226, "PASS": "20250002226" },
+            { "Name": "AKASH R", "ERP": 20256010065, "PASS": "20256010065" },
+            { "Name": "PRITESH KUMAR", "ERP": 20252000059, "PASS": "20252000059" },
+            { "Name": "Nayana R", "ERP": 20252000181, "PASS": "20252000181" },
+            { "Name": "Ankit Kumar", "ERP": 20252000179, "PASS": "20252000179" },
+            { "Name": "Krishna gopal paul", "ERP": 20252000800, "PASS": "20252000800" },
+            { "Name": "Raghavendra MS", "ERP": 20252001086, "PASS": "20252001086" },
+            { "Name": "Swathi Pawar", "ERP": 20252001081, "PASS": "20252001081" }
+          ]
+        };
+
+        // 1. Storage Management (Replaces plain cookies for robustness)
+        function setAuth(name, erp) {
+            const now = new Date();
+            const expiry = now.getTime() + (COOKIE_DURATION_HOURS * 60 * 60 * 1000);
+            const sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+            // Set LocalStorage (Primary for File:// and refresh persistence)
+            localStorage.setItem(STORAGE_KEY_TOKEN, "active");
+            localStorage.setItem(STORAGE_KEY_NAME, name);
+            localStorage.setItem(STORAGE_KEY_ERP, erp);
+            localStorage.setItem(STORAGE_KEY_EXPIRY, expiry);
+            localStorage.setItem(STORAGE_KEY_SESSION, sessionId);
+        }
+
+        function clearAuth() {
+            localStorage.removeItem(STORAGE_KEY_TOKEN);
+            localStorage.removeItem(STORAGE_KEY_NAME);
+            localStorage.removeItem(STORAGE_KEY_ERP);
+            localStorage.removeItem(STORAGE_KEY_EXPIRY);
+            localStorage.removeItem(STORAGE_KEY_SESSION);
+        }
+
+        function isAuthValid() {
+            const token = localStorage.getItem(STORAGE_KEY_TOKEN);
+            const expiry = localStorage.getItem(STORAGE_KEY_EXPIRY);
+            const now = new Date().getTime();
+
+            if (!token || !expiry) return false;
+            if (now > parseInt(expiry)) {
+                clearAuth(); // Expired
+                return false;
+            }
+            return true;
+        }
+
+        // 2. Auth Interface Logic
+        const overlay = document.getElementById('loginOverlay');
+        const mainApp = document.getElementById('mainApp');
+        const loginBox = document.getElementById('loginBox');
+        const msgDiv = document.getElementById('authMessage');
+
+        function showLogin(message = null, isError = false) {
+            if (!overlay.classList.contains('hidden')) {
+                // Already showing, just update message if needed
+                if(message) updateMsg(message, isError);
+                return;
+            }
+            overlay.classList.remove('hidden');
+            mainApp.classList.add('blur-app');
+            if(message) updateMsg(message, isError);
+        }
+
+        function updateMsg(message, isError) {
+             msgDiv.textContent = message;
+             msgDiv.classList.remove('hidden');
+             msgDiv.className = isError 
+                ? "mb-4 p-3 rounded-lg text-xs font-bold text-center uppercase tracking-wider bg-red-100 text-red-600 border border-red-200 block" 
+                : "mb-4 p-3 rounded-lg text-xs font-bold text-center uppercase tracking-wider bg-blue-100 text-blue-600 border border-blue-200 block";
+             if(isError) {
+                 loginBox.classList.remove('shake');
+                 void loginBox.offsetWidth; // Trigger reflow
+                 loginBox.classList.add('shake');
+             }
+        }
+
+        function hideLogin() {
+            overlay.classList.add('hidden');
+            mainApp.classList.remove('blur-app');
+        }
+
+        function performLogout() {
+            clearAuth();
+            showLogin("Logged out successfully", false);
+            // Hide profile
+            document.getElementById('agentProfile').classList.add('hidden');
+        }
+        
+        function updateAgentUI(name, erp) {
+            const profileDiv = document.getElementById('agentProfile');
+            const nameEl = document.getElementById('agentName');
+            const erpEl = document.getElementById('agentErp');
+            const avatarEl = document.getElementById('agentAvatar');
+
+            if(name && erp) {
+                profileDiv.classList.remove('hidden');
+                nameEl.textContent = name;
+                erpEl.textContent = `ERP: ${erp}`;
+                
+                // Initials logic
+                const names = name.split(' ');
+                let initials = names[0].charAt(0);
+                if(names.length > 1) initials += names[names.length-1].charAt(0);
+                avatarEl.textContent = initials.toUpperCase();
+            }
+        }
+
+        // 3. User Data Fetcher
+        async function fetchUsers() {
+            try {
+                const response = await fetch(JSON_FILE_PATH);
+                if (!response.ok) throw new Error('File not found');
+                const data = await response.json();
+                return data.authorized_users || [];
+            } catch (error) {
+                console.warn("Could not fetch users.json. Using fallback data.", error);
+                return FALLBACK_USERS.authorized_users;
+            }
+        }
+
+        // 4. Form Submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+
+            if(!u || !p) {
+                updateMsg("Please enter ERP and Password", true);
+                return;
+            }
+            
+            // --- SECURITY CHECK SIMULATION ---
+            // NOTE: To enforce strict "One Device Only" (e.g., blocking login if active on another laptop),
+            // you need a backend server (Firebase/SQL).
+            // This simulation below prevents double-login behavior locally and displays the requested error message.
+            if(isAuthValid()) {
+                 const currentErp = localStorage.getItem(STORAGE_KEY_ERP);
+                 if(currentErp !== u) {
+                      updateMsg("ALREADY SESSION CREATED. CONTACT ADMIN.", true);
+                      return;
+                 }
+            }
+
+            btn.innerText = "Verifying Credentials...";
+            btn.disabled = true;
+            btn.classList.add('opacity-75');
+
+            const users = await fetchUsers();
+            
+            // Match against JSON fields: ERP and PASS
+            const validUser = users.find(user => 
+                String(user.ERP) === u && 
+                String(user.PASS) === p
+            );
+
+            if(validUser) {
+                setAuth(validUser.Name, validUser.ERP);
+                updateAgentUI(validUser.Name, validUser.ERP);
+                hideLogin();
+                
+                document.getElementById('username').value = "";
+                document.getElementById('password').value = "";
+            } else {
+                updateMsg("Invalid ERP or Password", true);
+            }
+
+            btn.innerText = originalText;
+            btn.disabled = false;
+            btn.classList.remove('opacity-75');
+        });
+
+        // 5. THE ENFORCER & SYNC
+        function checkAuthStatus() {
+            if(!isAuthValid()) {
+                if(overlay.classList.contains('hidden')) {
+                    showLogin("Session Expired. Please Login.", true);
+                    document.getElementById('agentProfile').classList.add('hidden');
+                }
+            } else {
+                // If logged in, ensure UI is up to date (handles refresh)
+                const name = localStorage.getItem(STORAGE_KEY_NAME);
+                const erp = localStorage.getItem(STORAGE_KEY_ERP);
+                if(name && erp) {
+                    if(document.getElementById('agentProfile').classList.contains('hidden')) {
+                        updateAgentUI(name, erp);
+                        hideLogin();
+                    }
+                }
+            }
+        }
+        
+        // ** MULTI-TAB SYNC LISTENER **
+        // This ensures if you login in one tab, other tabs update.
+        // Or if you logout in one tab, others logout.
+        window.addEventListener('storage', (event) => {
+            if (event.key === STORAGE_KEY_TOKEN || event.key === STORAGE_KEY_SESSION) {
+                // If token changes (login or logout happened elsewhere)
+                checkAuthStatus();
+            }
+        });
+
+        // Run immediately
+        checkAuthStatus();
+
+        // Run interval
+        setInterval(checkAuthStatus, CHECK_INTERVAL_MS);
+
+        // --- EXISTING MAP LOGIC BELOW ---
         const TOMTOM_API_KEY = 'mDqeJr5ga4WsG1WEYehTyFXqro5aTfi5';
 
-        // --- Data: Complete Branch List ---
         const rawBranches = [
-            // Bengaluru
             { name: 'Orchids The International School, Bannerghatta', area: 'Bannerghatta', city: 'Bengaluru', state: 'Karnataka', pincode: '560083', lat: 12.8710, lon: 77.5997 },
             { name: 'Orchids The International School, BTM Layout', area: 'BTM Layout', city: 'Bengaluru', state: 'Karnataka', pincode: '560076', lat: 12.9166, lon: 77.6101 },
             { name: 'Orchids The International School, CV Raman Nagar', area: 'CV Raman Nagar', city: 'Bengaluru', state: 'Karnataka', pincode: '560093', lat: 12.9918, lon: 77.6586 },
@@ -179,8 +469,6 @@
             { name: 'Orchids The International School, Yelahanka', area: 'Yelahanka', city: 'Bengaluru', state: 'Karnataka', pincode: '560064', lat: 13.0999, lon: 77.5956 },
             { name: 'Orchids The International School, Yelahanka II', area: 'Yelahanka II', city: 'Bengaluru', state: 'Karnataka', pincode: '560064', lat: 13.1165, lon: 77.6073 },
             { name: 'Orchids The International School, Budigere Cross', area: 'Budigere Cross', city: 'Bengaluru', state: 'Karnataka', pincode: '560049', lat: 13.0240, lon: 77.7550 },
-
-            // Mumbai
             { name: 'Orchids The International School, Borivali West', area: 'Borivali West', city: 'Mumbai', state: 'Maharashtra', pincode: '400092', lat: 19.2323, lon: 72.8485 },
             { name: 'Orchids The International School, Dombivli', area: 'Dombivli', city: 'Mumbai', state: 'Maharashtra', pincode: '421201', lat: 19.2184, lon: 73.0869 },
             { name: 'Orchids The International School, Koparkhairane', area: 'Koparkhairane', city: 'Mumbai', state: 'Maharashtra', pincode: '400709', lat: 19.1051, lon: 72.9942 },
@@ -195,8 +483,6 @@
             { name: 'Orchids The International School, Thane', area: 'Thane', city: 'Mumbai', state: 'Maharashtra', pincode: '400607', lat: 19.2183, lon: 72.9781 },
             { name: 'Orchids The International School, Vikhroli', area: 'Vikhroli', city: 'Mumbai', state: 'Maharashtra', pincode: '400079', lat: 19.0911, lon: 72.9231 },
             { name: 'Orchids The International School, Yari Road', area: 'Yari Road', city: 'Mumbai', state: 'Maharashtra', pincode: '400061', lat: 19.1258, lon: 72.8139 },
-
-            // Pune
             { name: 'Orchids The International School, Ambegaon', area: 'Ambegaon', city: 'Pune', state: 'Maharashtra', pincode: '411046', lat: 18.4485, lon: 73.8344 },
             { name: 'Orchids The International School, Chinchwad', area: 'Chinchwad', city: 'Pune', state: 'Maharashtra', pincode: '411033', lat: 18.6272, lon: 73.7879 },
             { name: 'Orchids The International School, Hinjewadi', area: 'Hinjewadi', city: 'Pune', state: 'Maharashtra', pincode: '411057', lat: 18.5912, lon: 73.7389 },
@@ -207,8 +493,6 @@
             { name: 'Orchids The International School, Tathawade', area: 'Tathawade', city: 'Pune', state: 'Maharashtra', pincode: '411033', lat: 18.6087, lon: 73.7431 },
             { name: 'Orchids The International School, Undri', area: 'Undri', city: 'Pune', state: 'Maharashtra', pincode: '411060', lat: 18.4529, lon: 73.9016 },
             { name: 'Orchids The International School, Wadgaon Sheri', area: 'Wadgaon Sheri', city: 'Pune', state: 'Maharashtra', pincode: '411014', lat: 18.5601, lon: 73.9160 },
-
-            // Hyderabad
             { name: 'Orchids The International School, Bachupally', area: 'Bachupally', city: 'Hyderabad', state: 'Telangana', pincode: '500090', lat: 17.5247, lon: 78.3850 },
             { name: 'Orchids The International School, Bandlaguda', area: 'Bandlaguda', city: 'Hyderabad', state: 'Telangana', pincode: '500086', lat: 17.3486, lon: 78.4116 },
             { name: 'Orchids The International School, Bolarum', area: 'Bolarum', city: 'Hyderabad', state: 'Telangana', pincode: '500010', lat: 17.5186, lon: 78.5304 },
@@ -216,8 +500,6 @@
             { name: 'Orchids The International School, Kapra', area: 'Kapra', city: 'Hyderabad', state: 'Telangana', pincode: '500062', lat: 17.4815, lon: 78.5731 },
             { name: 'Orchids The International School, Langar Houz', area: 'Langar Houz', city: 'Hyderabad', state: 'Telangana', pincode: '500008', lat: 17.3770, lon: 78.4239 },
             { name: 'Orchids The International School, Uppal', area: 'Uppal', city: 'Hyderabad', state: 'Telangana', pincode: '500039', lat: 17.4042, lon: 78.5630 },
-
-            // Chennai
             { name: 'Orchids The International School, Korattur', area: 'Korattur', city: 'Chennai', state: 'Tamil Nadu', pincode: '600080', lat: 13.1119, lon: 80.1947 },
             { name: 'Orchids The International School, Manapakkam', area: 'Manapakkam', city: 'Chennai', state: 'Tamil Nadu', pincode: '600125', lat: 13.0200, lon: 80.1718 },
             { name: 'Orchids The International School, Pallavaram', area: 'Pallavaram', city: 'Chennai', state: 'Tamil Nadu', pincode: '600043', lat: 12.9731, lon: 80.1492 },
@@ -228,72 +510,39 @@
             { name: 'Orchids The International School, Velachery', area: 'Velachery', city: 'Chennai', state: 'Tamil Nadu', pincode: '600042', lat: 12.9785, lon: 80.2185 },
             { name: 'Orchids The International School, Vandalur', area: 'Vandalur', city: 'Chennai', state: 'Tamil Nadu', pincode: '600048', lat: 12.8916, lon: 80.0818 },
             { name: 'Orchids The International School, Kelambakkam', area: 'Kelambakkam', city: 'Chennai', state: 'Tamil Nadu', pincode: '603103', lat: 12.7876, lon: 80.2185 },
-            // Kolkata
             { name: 'Orchids The International School, Joka', area: 'Joka', city: 'Kolkata', state: 'West Bengal', pincode: '700104', lat: 22.4633, lon: 88.3048 },
             { name: 'Orchids The International School, Madhyamgram', area: 'Madhyamgram', city: 'Kolkata', state: 'West Bengal', pincode: '700129', lat: 22.7001, lon: 88.4511 },
             { name: 'Orchids The International School, Newtown', area: 'Newtown', city: 'Kolkata', state: 'West Bengal', pincode: '700156', lat: 22.5726, lon: 88.4339 },
-
-            // Gurgaon
             { name: 'Orchids The International School, Dwarka Expressway', area: 'Dwarka Expressway', city: 'Gurgaon', state: 'Haryana', pincode: '122017', lat: 28.5282, lon: 77.0180 },
             { name: 'Orchids The International School, Golf Course Road', area: 'Golf Course Road', city: 'Gurgaon', state: 'Haryana', pincode: '122002', lat: 28.4566, lon: 77.0917 },
             { name: 'Orchids The International School, Sector 56', area: 'Sector 56', city: 'Gurgaon', state: 'Haryana', pincode: '122011', lat: 28.4217, lon: 77.0911 },
             { name: 'Orchids The International School, South City 1', area: 'South City 1', city: 'Gurgaon', state: 'Haryana', pincode: '122001', lat: 28.4485, lon: 77.0628 },
-
-            // Indore
             { name: 'Orchids The International School, Aurobindo Square', area: 'Aurobindo Square', city: 'Indore', state: 'Madhya Pradesh', pincode: '452010', lat: 22.7533, lon: 75.8937 },
             { name: 'Orchids The International School, Rajendra Nagar', area: 'Rajendra Nagar', city: 'Indore', state: 'Madhya Pradesh', pincode: '452012', lat: 22.6844, lon: 75.8306 },
-
-            // Sonipat
             { name: 'Orchids The International School, New Braham Colony', area: 'New Braham Colony', city: 'Sonipat', state: 'Haryana', pincode: '131001', lat: 28.9956, lon: 77.0184 },
             { name: 'Orchids The International School, Bahalgarh', area: 'Bahalgarh', city: 'Sonipat', state: 'Haryana', pincode: '131021', lat: 29.0700, lon: 77.0378 },
-
-            // Delhi
             { name: 'Orchids The International School, Dwarka Sector-19', area: 'Dwarka Sector-19', city: 'Delhi', state: 'Delhi', pincode: '110075', lat: 28.5835, lon: 77.0505 },
-
-            // Chh Sambhaji Nagar (Aurangabad)
             { name: 'Orchids The International School, TCH Adgaon', area: 'TCH Adgaon', city: 'Chh Sambhabji Nagar', state: 'Maharashtra', pincode: '422003', lat: 20.0266, lon: 73.8229 }, 
             { name: 'Orchids The International School, N6 Cidco', area: 'N6 Cidco', city: 'Aurangabad', state: 'Maharashtra', pincode: '431003', lat: 19.8700, lon: 75.3500 },
-
-            // Ahmednagar
             { name: 'Orchids The International School, Dhangarwadi', area: 'Dhangarwadi', city: 'Ahmednagar', state: 'Maharashtra', pincode: '414005', lat: 19.1413, lon: 74.7937 },
-
-            // Rohtak
             { name: 'Orchids The International School, Gohana Road', area: 'Gohana Road', city: 'Rohtak', state: 'Haryana', pincode: '124001', lat: 28.8955, lon: 76.5894 },
-
-            // Tumkur
             { name: 'Orchids The International School, SiraGate', area: 'SiraGate', city: 'Tumakuru', state: 'Karnataka', pincode: '572106', lat: 13.3618, lon: 77.0945 },
-
-            // Nagpur
             { name: 'Orchids The International School, Koradi Road', area: 'Koradi Road', city: 'Nagpur', state: 'Maharashtra', pincode: '441111', lat: 21.2290, lon: 79.0911 },
-            { name: 'Orchids The International School, Besa Road', area: 'Besa Road', city: 'Nagpur', state: 'Maharashtra', pincode: '440037', lat: 21.1120, lon: 79.0950 },
-
-            // Bhopal
             { name: 'Orchids The International School, Hoshangabad Road', area: 'Hoshangabad Road', city: 'Bhopal', state: 'Madhya Pradesh', pincode: '462026', lat: 23.1815, lon: 77.4419 },
-
-            // Jabalpur
             { name: 'Orchids The International School, Bhedaghat Road', area: 'Bhedaghat Road', city: 'Jabalpur', state: 'Madhya Pradesh', pincode: '482003', lat: 23.1367, lon: 79.8248 },
-
-            // Hubli-Dharwad
             { name: 'Orchids The International School, Charantimath Gardens', area: 'Charantimath Gardens', city: 'Dharwad', state: 'Karnataka', pincode: '580001', lat: 15.4589, lon: 75.0078 },
             { name: 'Orchids The International School, Airport Road', area: 'Airport Road', city: 'Hubballi', state: 'Karnataka', pincode: '580027', lat: 15.3647, lon: 75.0849 },
-
-            // Jaipur
             { name: 'Orchids The International School, Mahaveer Nagar', area: 'Mahaveer Nagar', city: 'Jaipur', state: 'Rajasthan', pincode: '302018', lat: 26.8526, lon: 75.7737 },
             { name: 'Orchids The International School, Bhankrota', area: 'Bhankrota (Ajmer Road)', city: 'Jaipur', state: 'Rajasthan', pincode: '302026', lat: 26.8845, lon: 75.6865 },
             { name: 'Orchids The International School, Pratap Nagar', area: 'Pratap Nagar', city: 'Jaipur', state: 'Rajasthan', pincode: '302033', lat: 26.8028, lon: 75.8066 },
-
-            // Jodhpur
             { name: 'Orchids The International School, Pal Bypass', area: 'Pal Bypass', city: 'Jodhpur', state: 'Rajasthan', pincode: '342014', lat: 26.2167, lon: 72.9833 },
             { name: 'Orchids The International School, Banar', area: 'Banar - Jodhpur Cantt', city: 'Jodhpur', state: 'Rajasthan', pincode: '342015', lat: 26.3167, lon: 73.1000 },
             { name: 'Orchids The International School, Saran Nagar', area: 'Saran Nagar', city: 'Jodhpur', state: 'Rajasthan', pincode: '342015', lat: 26.2833, lon: 73.0667 },
             { name: 'Orchids The International School, Kudi Bhagtasni', area: 'Kudi Bhagtasni Housing Board', city: 'Jodhpur', state: 'Rajasthan', pincode: '342005', lat: 26.2250, lon: 73.0167 },
             { name: 'Orchids The International School, Chopasni', area: 'Chopasni Housing Board', city: 'Jodhpur', state: 'Rajasthan', pincode: '342008', lat: 26.2609, lon: 72.9736 },
-
-            // Pali
             { name: 'Orchids The International School, New Housing Board', area: 'New Housing Board Pali', city: 'Pali', state: 'Rajasthan', pincode: '306401', lat: 25.7750, lon: 73.3333 },
         ];
 
-        // Deduplication Function
         function removeDuplicates(arr) {
             const unique = new Map();
             arr.forEach(item => {
@@ -306,7 +555,6 @@
 
         const branches = removeDuplicates(rawBranches);
 
-        // --- GLOBAL STATE ---
         let map;
         let currentMarkers = [];
         let currentRouteLayer = null;
@@ -314,42 +562,28 @@
         let currentUserMarker = null; 
         let searchSessionId = 0; 
 
-        // Initialize Map (Leaflet)
         function initMap() {
             try {
-                // Initialize Leaflet map with OpenStreetMap tiles (FREE, No Key Required)
                 map = L.map('map').setView([20.5937, 78.9629], 4);
-                
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
                     attribution: '© OpenStreetMap'
                 }).addTo(map);
-                
             } catch(e) {
                 console.error("Map initialization failed:", e);
             }
         }
-
-        // Initialize map on load
+        
         window.addEventListener('load', initMap);
 
-        // --- MAP FUNCTIONS ---
-
-        // Clean map state (Markers & Route) safely
         function clearMap() {
-             // Clear Branch Markers
              currentMarkers.forEach(m => map.removeLayer(m));
              currentMarkers = [];
-
-             // Clear User Marker
              if (currentUserMarker) {
                  map.removeLayer(currentUserMarker);
                  currentUserMarker = null;
              }
-
              if(!map) return;
-
-             // Clear Route Layers
              if (currentRouteLayer) {
                  map.removeLayer(currentRouteLayer);
                  currentRouteLayer = null;
@@ -360,11 +594,9 @@
              }
         }
 
-        // Add a marker safely
         function addMarker(lat, lon, popupHTML) {
             if(!map) return null;
             try {
-                // Custom Orange Icon using DivIcon to match original style
                 const customIcon = L.divIcon({
                     className: 'custom-marker',
                     html: '<div class="custom-marker-pin"></div>',
@@ -380,16 +612,14 @@
             } catch(e) { console.log('Add marker error', e); return null; }
         }
 
-        // Fly to location safely
         function flyToLocation(lon, lat, zoomLevel) {
             if(map) {
                 map.flyTo([lat, lon], zoomLevel);
             }
         }
 
-        // 1. Basic Haversine (Crow flies) for initial filtering
         function getCrowDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // km
+            const R = 6371; 
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -399,7 +629,6 @@
             return R * c;
         }
 
-        // 3. Draw Route on Map (On Demand) - Uses TomTom API for Routing, Leaflet for Drawing
         async function drawRoute(userLat, userLon, destLat, destLon) {
             if(!map) { alert("Map not loaded properly."); return; }
 
@@ -408,7 +637,6 @@
 
             const currentSessionId = searchSessionId;
 
-            // Remove previous route
             if (currentRouteLayer) map.removeLayer(currentRouteLayer);
             if (currentRouteOutline) map.removeLayer(currentRouteOutline);
             
@@ -420,14 +648,12 @@
                 
                 loadingOverlay.classList.add('hidden');
 
-                if (currentSessionId !== searchSessionId) return; // Search changed
+                if (currentSessionId !== searchSessionId) return;
 
                 if (data.routes && data.routes.length > 0) {
                     const points = data.routes[0].legs[0].points;
-                    // Convert TomTom points {latitude, longitude} to Leaflet [lat, lon]
                     const latlngs = points.map(p => [p.latitude, p.longitude]);
 
-                    // Draw Outline (White)
                     currentRouteOutline = L.polyline(latlngs, {
                         color: 'white',
                         weight: 8,
@@ -435,7 +661,6 @@
                         lineJoin: 'round'
                     }).addTo(map);
 
-                    // Draw Route (Blue)
                     currentRouteLayer = L.polyline(latlngs, {
                         color: '#3b82f6',
                         weight: 5,
@@ -443,7 +668,6 @@
                         lineJoin: 'round'
                     }).addTo(map);
                     
-                    // Fit bounds to route
                     map.fitBounds(currentRouteLayer.getBounds(), { padding: [50, 50] });
                 }
             } catch (e) {
@@ -453,37 +677,25 @@
         }
 
         async function findNearbyBranches(userLon, userLat) {
-            // 1. Increment Session ID
             searchSessionId++;
-
-            // 2. Clear old map data
             clearMap();
-
-            // 3. IMMEDIATE FEEDBACK
             flyToLocation(userLon, userLat, 11);
 
-            // 4. Calculate Crow Distance ONLY (FAST)
             const allWithDist = branches.map(b => {
                 const dist = getCrowDistance(userLat, userLon, b.lat, b.lon);
                 return { ...b, distance: dist, roadDistance: dist }; 
             });
 
-            // 5. SORT ALL
             allWithDist.sort((a, b) => a.distance - b.distance);
 
-            // 6. SMART FILTERING
-            // First, try to get branches within 15km
             let nearbyBranches = allWithDist.filter(b => b.distance <= 15);
             let displayMessage = "";
 
-            // FAILSAFE: If no branches within 15km, take top 3 anyway
-            // This prevents "Nothing Showing" when searching for City Centers far from suburbs
             if (nearbyBranches.length === 0) {
                 nearbyBranches = allWithDist.slice(0, 3);
                 displayMessage = "No branches within 15km. Showing closest:";
             }
 
-            // 7. RENDER
             renderResults(nearbyBranches, userLat, userLon, displayMessage);
         }
 
@@ -492,13 +704,9 @@
             const noResults = document.getElementById('noResults');
             const initialState = document.getElementById('initialState');
             
-            // Clear only the results container contents
             container.innerHTML = '';
-            
-            // Hide state icons
             initialState.classList.add('hidden');
             
-            // Render Warning Message if any
             if(message) {
                 const msgDiv = document.createElement('div');
                 msgDiv.className = "text-xs font-semibold text-orange-600 bg-orange-50 p-2 rounded mb-2 border border-orange-100";
@@ -506,7 +714,6 @@
                 container.appendChild(msgDiv);
             }
 
-            // Add User Marker
             if(map) {
                 const userIcon = L.divIcon({
                     className: 'user-marker',
@@ -526,12 +733,10 @@
             }
             noResults.classList.add('hidden');
 
-            // Collect bounds to zoom to fit all results
             const bounds = L.latLngBounds();
             bounds.extend([userLat, userLon]);
 
             results.forEach((branch, index) => {
-                // Simplified Distance Display (Fast)
                 const distDisplay = `<span class="text-gray-600 font-bold">${branch.distance.toFixed(1)} km</span> <span class="text-xs text-gray-400">(Direct)</span>`;
 
                 const card = document.createElement('div');
@@ -565,7 +770,6 @@
 
                 container.appendChild(card);
 
-                // Add map marker
                 const marker = addMarker(branch.lat, branch.lon, `<b class="text-black">${branch.area}</b><br>${branch.distance.toFixed(1)} km`);
                 if(marker) currentMarkers.push(marker);
                 
@@ -577,7 +781,6 @@
             }
         }
 
-        // --- Event Listeners ---
         document.getElementById('searchBtn').addEventListener('click', async () => {
             const query = document.getElementById('manualLocation').value;
             const errorBox = document.getElementById('geocodeError');
@@ -586,18 +789,12 @@
             const initialState = document.getElementById('initialState');
 
             errorBox.classList.add('hidden');
-            
             if(!query) return;
-
-            // INSTANT CLEAR: Hide previous results immediately
             container.innerHTML = ''; 
             noResults.classList.add('hidden');
-            
-            // Show loading state
             if(initialState) initialState.classList.remove('hidden'); 
 
             try {
-                // Using TomTom Geocoding for better search results (TomTom still works fine, just map display was broken)
                 const url = `https://api.tomtom.com/search/2/geocode/${encodeURIComponent(query)}.json?key=${TOMTOM_API_KEY}`;
                 const resp = await fetch(url);
                 const data = await resp.json();
@@ -618,7 +815,6 @@
             }
         });
 
-        // Add Enter key support
         document.getElementById('manualLocation').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 document.getElementById('searchBtn').click();
@@ -627,13 +823,10 @@
 
         document.getElementById('locateMeBtn').addEventListener('click', () => {
             const initialState = document.getElementById('initialState');
-            
             if (navigator.geolocation) {
-                // Clear previous results instantly
                 document.getElementById('resultsContainer').innerHTML = '';
                 document.getElementById('noResults').classList.add('hidden');
                 if(initialState) initialState.classList.remove('hidden');
-
                 navigator.geolocation.getCurrentPosition(pos => {
                     if(initialState) initialState.classList.add('hidden');
                     findNearbyBranches(pos.coords.longitude, pos.coords.latitude);
@@ -644,7 +837,6 @@
                 document.getElementById('statusMessage').textContent = "Geolocation not supported.";
             }
         });
-
     </script>
 </body>
 </html>
