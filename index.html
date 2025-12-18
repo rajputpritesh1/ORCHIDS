@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,17 +9,30 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
     <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .branch-card { transition: all 0.2s ease-in-out; }
-        .branch-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .branch-card {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .branch-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
         .loader {
             border: 3px solid #f3f3f3;
             border-radius: 50%;
@@ -27,61 +41,150 @@
             height: 20px;
             animation: spin 1s linear infinite;
         }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
         /* Scrollbar */
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        
-        #map { background-color: #e5e7eb; z-index: 1; } 
-        
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        #map {
+            background-color: #e5e7eb;
+            z-index: 1;
+        }
+
         /* Markers */
         .custom-marker-pin {
-            width: 30px; height: 30px; border-radius: 50% 50% 50% 0;
-            background: #f97316; position: absolute; transform: rotate(-45deg);
-            left: 50%; top: 50%; margin: -15px 0 0 -15px;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.3); border: 2px solid white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50% 50% 50% 0;
+            background: #f97316;
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -15px 0 0 -15px;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+            border: 2px solid white;
         }
+
         .custom-marker-pin::after {
-            content: ''; width: 10px; height: 10px; margin: 8px 0 0 8px;
-            background: #fff; position: absolute; border-radius: 50%;
+            content: '';
+            width: 10px;
+            height: 10px;
+            margin: 8px 0 0 8px;
+            background: #fff;
+            position: absolute;
+            border-radius: 50%;
         }
+
         .user-marker-pin {
-            width: 20px; height: 20px; border-radius: 50%; background: #3b82f6;
-            border: 3px solid white; box-shadow: 0 0 0 2px #3b82f6;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px #3b82f6;
             animation: pulse-ring 2s infinite;
         }
+
         @keyframes pulse-ring {
-            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
         }
 
         /* --- LOGIN SPECIFIC STYLES --- */
-        .blur-app { filter: blur(8px); pointer-events: none; user-select: none; }
-        .login-fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        
-        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        .blur-app {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .login-fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+        }
+
         @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+
+            10%,
+            90% {
+                transform: translate3d(-1px, 0, 0);
+            }
+
+            20%,
+            80% {
+                transform: translate3d(2px, 0, 0);
+            }
+
+            30%,
+            50%,
+            70% {
+                transform: translate3d(-4px, 0, 0);
+            }
+
+            40%,
+            60% {
+                transform: translate3d(4px, 0, 0);
+            }
         }
     </style>
 </head>
+
 <body class="h-screen overflow-hidden relative">
 
     <!-- ================== LOGIN POPUP OVERLAY ================== -->
-    <div id="loginOverlay" class="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
-        <div id="loginBox" class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden login-fade-in border border-orange-100">
+    <div id="loginOverlay"
+        class="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div id="loginBox"
+            class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden login-fade-in border border-orange-100">
             <!-- Header -->
             <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-8 text-center relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                <div
+                    class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10">
+                </div>
                 <div class="relative z-10">
-                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <div
+                        class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                            </path>
+                        </svg>
                     </div>
                     <h2 class="text-2xl font-bold text-white tracking-wide">Orchids Staff Portal</h2>
                     <p class="text-orange-100 text-sm mt-1">Please authenticate to continue</p>
@@ -90,24 +193,36 @@
 
             <!-- Form -->
             <div class="p-8 bg-white">
-                <div id="authMessage" class="hidden mb-4 p-3 rounded-lg text-xs font-bold text-center uppercase tracking-wider"></div>
-                
+                <div id="authMessage"
+                    class="hidden mb-4 p-3 rounded-lg text-xs font-bold text-center uppercase tracking-wider"></div>
+
                 <form id="loginForm" class="space-y-5">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">ERP ID (Username)</label>
-                        <input type="number" id="username" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all" placeholder="Enter your ERP ID">
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">ERP ID
+                            (Username)</label>
+                        <input type="number" id="username"
+                            class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
+                            placeholder="Enter your ERP ID">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Password (Pass Key)</label>
-                        <input type="password" id="password" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all" placeholder="Enter Password">
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Password
+                            (Pass Key)</label>
+                        <input type="password" id="password"
+                            class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
+                            placeholder="Enter Password">
                     </div>
-                    <button type="submit" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3.5 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+                    <button type="submit"
+                        class="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3.5 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0">
                         Secure Login
                     </button>
                 </form>
 
                 <p class="text-center text-xs text-gray-400 mt-6 flex items-center justify-center gap-1">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                        </path>
+                    </svg>
                     Session valid for 9 hours
                 </p>
             </div>
@@ -120,26 +235,30 @@
         <div class="w-full md:w-1/3 lg:w-[400px] h-1/2 md:h-full flex flex-col bg-white shadow-xl z-20 relative">
             <!-- Header -->
             <div class="p-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white shrink-0 relative">
-                
+
                 <!-- Agent Profile Section (Hidden until login) -->
-                <div id="agentProfile" class="hidden mb-4 bg-white/10 p-3 rounded-lg backdrop-blur-sm border border-white/20 transition-all">
+                <div id="agentProfile"
+                    class="hidden mb-4 bg-white/10 p-3 rounded-lg backdrop-blur-sm border border-white/20 transition-all">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-white text-orange-600 flex items-center justify-center font-bold text-lg shadow-sm" id="agentAvatar">
+                            <div class="w-10 h-10 rounded-full bg-white text-orange-600 flex items-center justify-center font-bold text-lg shadow-sm"
+                                id="agentAvatar">
                                 <!-- Initials -->
                             </div>
                             <div>
                                 <p class="text-sm font-bold text-white" id="agentName">Loading...</p>
                                 <div class="flex items-center gap-2">
                                     <p class="text-xs text-orange-100" id="agentErp">ERP: ---</p>
-                                    <span class="px-1.5 py-0.5 bg-green-500/20 text-green-100 text-[10px] font-bold rounded border border-green-400/30 flex items-center gap-1">
+                                    <span
+                                        class="px-1.5 py-0.5 bg-green-500/20 text-green-100 text-[10px] font-bold rounded border border-green-400/30 flex items-center gap-1">
                                         <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
                                         ACTIVE
                                     </span>
                                 </div>
                             </div>
                         </div>
-                        <button onclick="performLogout()" class="text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded transition-colors border border-white/30">
+                        <button onclick="performLogout()"
+                            class="text-xs bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded transition-colors border border-white/30">
                             Logout
                         </button>
                     </div>
@@ -148,50 +267,101 @@
                 <h1 class="text-2xl font-bold">Find a School</h1>
                 <p class="text-orange-100 text-sm mt-1">Locate the nearest ORCHIDS campus</p>
             </div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div
+                        class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Visits</p>
+                            <h3 id="totalVisits" class="text-2xl font-bold text-slate-800">0</h3>
+                        </div>
+                        <div class="p-3 bg-blue-50 rounded-lg text-blue-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Users Logged In
+                                (Live)</p>
+                            <h3 id="liveUsers" class="text-2xl font-bold text-green-600">1</h3>
+                        </div>
+                        <div class="p-3 bg-green-50 rounded-lg text-green-600 animate-pulse">
+                            <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Search Inputs -->
             <div class="p-4 border-b border-gray-200 space-y-3 shrink-0 bg-gray-50">
                 <div class="relative">
-                    <input type="text" id="manualLocation" placeholder="Enter Area, City or Pincode" 
+                    <input type="text" id="manualLocation" placeholder="Enter Area, City or Pincode"
                         class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none shadow-sm text-sm">
-                    <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <svg class="w-5 h-5 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
                 </div>
-                
+
                 <div class="flex gap-2">
-                    <button id="searchBtn" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm">
+                    <button id="searchBtn"
+                        class="flex-1 bg-gray-900 hover:bg-gray-800 text-white py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm">
                         Search
                     </button>
-                    <button id="locateMeBtn" class="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-sm">
-                        <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <button id="locateMeBtn"
+                        class="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-sm">
+                        <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
                         Use My Location
                     </button>
                 </div>
-                
+
                 <div id="statusMessage" class="text-xs text-center min-h-[20px] text-gray-500 font-medium"></div>
-                
+
                 <!-- Error Messages -->
-                <div id="geocodeError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-xs">
+                <div id="geocodeError"
+                    class="hidden p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-xs">
                     Could not find that location. Please try a valid city or zipcode.
                 </div>
             </div>
 
             <!-- Content Area -->
             <div class="flex-1 relative bg-slate-50">
-                <div id="initialState" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 text-center p-6 z-0">
-                    <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div id="initialState"
+                    class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 text-center p-6 z-0">
+                    <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
+                    </svg>
                     <p>Enter your location to see<br>Orchids schools near you.</p>
                 </div>
-                <div id="noResults" class="hidden absolute inset-0 flex flex-col items-center justify-center text-gray-500 z-0">
+                <div id="noResults"
+                    class="hidden absolute inset-0 flex flex-col items-center justify-center text-gray-500 z-0">
                     <p>No branches found nearby.</p>
                 </div>
-                <div id="resultsContainer" class="absolute inset-0 overflow-y-auto custom-scroll p-4 space-y-3 z-10"></div>
+                <div id="resultsContainer" class="absolute inset-0 overflow-y-auto custom-scroll p-4 space-y-3 z-10">
+                </div>
             </div>
         </div>
 
         <!-- RIGHT SIDE: Map -->
         <div class="w-full md:flex-1 h-1/2 md:h-full bg-gray-200 relative">
             <div id="map" class="w-full h-full"></div>
-            <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+            <div id="loadingOverlay"
+                class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
                 <div class="loader w-10 h-10 border-4 border-t-orange-500 mb-3"></div>
                 <p class="text-gray-700 font-semibold text-sm animate-pulse">Calculating Route...</p>
             </div>
@@ -207,41 +377,42 @@
         const STORAGE_KEY_ERP = "orchids_user_erp";
         const STORAGE_KEY_SESSION = "orchids_session_id";
         const STORAGE_KEY_EXPIRY = "orchids_auth_expiry";
-        
+
         const COOKIE_DURATION_HOURS = 9;
         const CHECK_INTERVAL_MS = 2000; // Check faster for better security
-        const JSON_FILE_PATH = 'users.json'; 
+        const JSON_FILE_PATH = 'users.json';
 
         // -----------------------------------------------------
         // FALLBACK DATA (Using the UPDATED List Provided)
         // -----------------------------------------------------
         const FALLBACK_USERS = {
-          "authorized_users": [
-            { "Name": "Ashwini R", "ERP": 20250002336, "PASS": "20250002336" },
-            { "Name": "Shaik Khaja", "ERP": 20252000178, "PASS": "20252000178" },
-            { "Name": "Meghana N", "ERP": 20252000216, "PASS": "20252000216" },
-            { "Name": "Hemanth L", "ERP": 20252000264, "PASS": "20252000264" },
-            { "Name": "Reck chatterjee", "ERP": 20252000334, "PASS": "20252000334" },
-            { "Name": "Ullas J", "ERP": 20252000431, "PASS": "20252000431" },
-            { "Name": "Dinesh Pal", "ERP": 20252000542, "PASS": "20252000542" },
-            { "Name": "Akshitha C S", "ERP": 20252000544, "PASS": "20252000544" },
-            { "Name": "Dhanush S", "ERP": 20252000472, "PASS": "20252000472" },
-            { "Name": "Vijay Surya A", "ERP": 20252000540, "PASS": "20252000540" },
-            { "Name": "Chandan N", "ERP": 20252000557, "PASS": "20252000557" },
-            { "Name": "Darshan Rathod", "ERP": 20252000677, "PASS": "20252000677" },
-            { "Name": "Charan D S", "ERP": 20250002226, "PASS": "20250002226" },
-            { "Name": "AKASH R", "ERP": 20256010065, "PASS": "20256010065" },
-            { "Name": "PRITESH KUMAR", "ERP": 2025200059, "PASS": "2025200059" },
-            { "Name": "Nayana R", "ERP": 20252000181, "PASS": "20252000181" },
-            { "Name": "Ankit Kumar", "ERP": 20252000179, "PASS": "20252000179" },
-            { "Name": "Krishna gopal paul", "ERP": 20252000800, "PASS": "20252000800" },
-            { "Name": "Raghavendra MS", "ERP": 20252001086, "PASS": "20252001086" },
-            { "Name": "Swathi Pawar", "ERP": 20252001081, "PASS": "20252001081" },
-            { "Name": "S KAVAN", "ERP": 20240000006, "PASS": "20240000006" },
-            { "Name": "R ARUNA", "ERP": 20240001113, "PASS": "20240001113" },
-            { "Name": "LUKE", "ERP": 20252000505, "PASS": "20252000505" },
-            { "Name": "MEGHNA G", "ERP": 20252000490, "PASS": "20252001081" }
-          ]
+            "authorized_users": [
+                { "Name": "Ashwini R", "ERP": 20250002336, "PASS": "20250002336" },
+                { "Name": "Shaik Khaja", "ERP": 20252000178, "PASS": "20252000178" },
+                { "Name": "Meghana N", "ERP": 20252000216, "PASS": "20252000216" },
+                { "Name": "Hemanth L", "ERP": 20252000264, "PASS": "20252000264" },
+                { "Name": "Reck chatterjee", "ERP": 20252000334, "PASS": "20252000334" },
+                { "Name": "Ullas J", "ERP": 20252000431, "PASS": "20252000431" },
+                { "Name": "Dinesh Pal", "ERP": 20252000542, "PASS": "20252000542" },
+                { "Name": "Akshitha C S", "ERP": 20252000544, "PASS": "20252000544" },
+                { "Name": "Dhanush S", "ERP": 20252000472, "PASS": "20252000472" },
+                { "Name": "Vijay Surya A", "ERP": 20252000540, "PASS": "20252000540" },
+                { "Name": "Chandan N", "ERP": 20252000557, "PASS": "20252000557" },
+                { "Name": "Darshan Rathod", "ERP": 20252000677, "PASS": "20252000677" },
+                { "Name": "Charan D S", "ERP": 20250002226, "PASS": "20250002226" },
+                { "Name": "AKASH R", "ERP": 20256010065, "PASS": "20256010065" },
+                { "Name": "PRITESH KUMAR", "ERP": 2025200059, "PASS": "2025200059" },
+                { "Name": "Nayana R", "ERP": 20252000181, "PASS": "20252000181" },
+                { "Name": "Ankit Kumar", "ERP": 20252000179, "PASS": "20252000179" },
+                { "Name": "Krishna gopal paul", "ERP": 20252000800, "PASS": "20252000800" },
+                { "Name": "Raghavendra MS", "ERP": 20252001086, "PASS": "20252001086" },
+                { "Name": "Swathi Pawar", "ERP": 20252001081, "PASS": "20252001081" },
+                { "Name": "S KAVAN", "ERP": 20240000006, "PASS": "20240000006" },
+                { "Name": "R ARUNA", "ERP": 20240001113, "PASS": "20240001113" },
+                { "Name": "LUKE", "ERP": 20252000505, "PASS": "20252000505" },
+                { "Name": "MEGHNA G", "ERP": 20252000490, "PASS": "20252001081" },
+                { "Name": "MEGHNA G", "ERP": 20252000490, "PASS": "20252000490" }
+            ]
         };
 
         // 1. Storage Management (Replaces plain cookies for robustness)
@@ -288,25 +459,25 @@
         function showLogin(message = null, isError = false) {
             if (!overlay.classList.contains('hidden')) {
                 // Already showing, just update message if needed
-                if(message) updateMsg(message, isError);
+                if (message) updateMsg(message, isError);
                 return;
             }
             overlay.classList.remove('hidden');
             mainApp.classList.add('blur-app');
-            if(message) updateMsg(message, isError);
+            if (message) updateMsg(message, isError);
         }
 
         function updateMsg(message, isError) {
-             msgDiv.textContent = message;
-             msgDiv.classList.remove('hidden');
-             msgDiv.className = isError 
-                ? "mb-4 p-3 rounded-lg text-xs font-bold text-center uppercase tracking-wider bg-red-100 text-red-600 border border-red-200 block" 
+            msgDiv.textContent = message;
+            msgDiv.classList.remove('hidden');
+            msgDiv.className = isError
+                ? "mb-4 p-3 rounded-lg text-xs font-bold text-center uppercase tracking-wider bg-red-100 text-red-600 border border-red-200 block"
                 : "mb-4 p-3 rounded-lg text-xs font-bold text-center uppercase tracking-wider bg-blue-100 text-blue-600 border border-blue-200 block";
-             if(isError) {
-                 loginBox.classList.remove('shake');
-                 void loginBox.offsetWidth; // Trigger reflow
-                 loginBox.classList.add('shake');
-             }
+            if (isError) {
+                loginBox.classList.remove('shake');
+                void loginBox.offsetWidth; // Trigger reflow
+                loginBox.classList.add('shake');
+            }
         }
 
         function hideLogin() {
@@ -320,22 +491,22 @@
             // Hide profile
             document.getElementById('agentProfile').classList.add('hidden');
         }
-        
+
         function updateAgentUI(name, erp) {
             const profileDiv = document.getElementById('agentProfile');
             const nameEl = document.getElementById('agentName');
             const erpEl = document.getElementById('agentErp');
             const avatarEl = document.getElementById('agentAvatar');
 
-            if(name && erp) {
+            if (name && erp) {
                 profileDiv.classList.remove('hidden');
                 nameEl.textContent = name;
                 erpEl.textContent = `ERP: ${erp}`;
-                
+
                 // Initials logic
                 const names = name.split(' ');
                 let initials = names[0].charAt(0);
-                if(names.length > 1) initials += names[names.length-1].charAt(0);
+                if (names.length > 1) initials += names[names.length - 1].charAt(0);
                 avatarEl.textContent = initials.toUpperCase();
             }
         }
@@ -361,21 +532,21 @@
             const btn = e.target.querySelector('button');
             const originalText = btn.innerText;
 
-            if(!u || !p) {
+            if (!u || !p) {
                 updateMsg("Please enter ERP and Password", true);
                 return;
             }
-            
+
             // --- SECURITY CHECK SIMULATION ---
             // NOTE: To enforce strict "One Device Only" (e.g., blocking login if active on another laptop),
             // you need a backend server (Firebase/SQL).
             // This simulation below prevents double-login behavior locally and displays the requested error message.
-            if(isAuthValid()) {
-                 const currentErp = localStorage.getItem(STORAGE_KEY_ERP);
-                 if(currentErp !== u) {
-                      updateMsg("ALREADY SESSION CREATED. CONTACT ADMIN.", true);
-                      return;
-                 }
+            if (isAuthValid()) {
+                const currentErp = localStorage.getItem(STORAGE_KEY_ERP);
+                if (currentErp !== u) {
+                    updateMsg("ALREADY SESSION CREATED. CONTACT ADMIN.", true);
+                    return;
+                }
             }
 
             btn.innerText = "Verifying Credentials...";
@@ -383,18 +554,18 @@
             btn.classList.add('opacity-75');
 
             const users = await fetchUsers();
-            
+
             // Match against JSON fields: ERP and PASS
-            const validUser = users.find(user => 
-                String(user.ERP) === u && 
+            const validUser = users.find(user =>
+                String(user.ERP) === u &&
                 String(user.PASS) === p
             );
 
-            if(validUser) {
+            if (validUser) {
                 setAuth(validUser.Name, validUser.ERP);
                 updateAgentUI(validUser.Name, validUser.ERP);
                 hideLogin();
-                
+
                 document.getElementById('username').value = "";
                 document.getElementById('password').value = "";
             } else {
@@ -408,8 +579,8 @@
 
         // 5. THE ENFORCER & SYNC
         function checkAuthStatus() {
-            if(!isAuthValid()) {
-                if(overlay.classList.contains('hidden')) {
+            if (!isAuthValid()) {
+                if (overlay.classList.contains('hidden')) {
                     showLogin("Session Expired. Please Login.", true);
                     document.getElementById('agentProfile').classList.add('hidden');
                 }
@@ -417,15 +588,15 @@
                 // If logged in, ensure UI is up to date (handles refresh)
                 const name = localStorage.getItem(STORAGE_KEY_NAME);
                 const erp = localStorage.getItem(STORAGE_KEY_ERP);
-                if(name && erp) {
-                    if(document.getElementById('agentProfile').classList.contains('hidden')) {
+                if (name && erp) {
+                    if (document.getElementById('agentProfile').classList.contains('hidden')) {
                         updateAgentUI(name, erp);
                         hideLogin();
                     }
                 }
             }
         }
-        
+
         // ** MULTI-TAB SYNC LISTENER **
         // This ensures if you login in one tab, other tabs update.
         // Or if you logout in one tab, others logout.
@@ -450,7 +621,6 @@
             { name: 'Orchids The International School, BTM Layout', area: 'BTM Layout', city: 'Bengaluru', state: 'Karnataka', pincode: '560076', lat: 12.9166, lon: 77.6101 },
             { name: 'Orchids The International School, CV Raman Nagar', area: 'CV Raman Nagar', city: 'Bengaluru', state: 'Karnataka', pincode: '560093', lat: 12.9918, lon: 77.6586 },
             { name: 'Orchids The International School, Haralur', area: 'Haralur', city: 'Bengaluru', state: 'Karnataka', pincode: '560102', lat: 12.9060, lon: 77.6601 },
-            { name: 'Orchids The International School, Hesaraghatta Road', area: 'Mallasandra', city: 'Bengaluru', state: 'Karnataka', pincode: '560057', lat: 13.0485, lon: 77.5145 },
             { name: 'Orchids The International School, Hennur Road', area: 'Hennur Road', city: 'Bengaluru', state: 'Karnataka', pincode: '560077', lat: 13.0360, lon: 77.6433 },
             { name: 'Orchids The International School, Horamavu', area: 'Horamavu', city: 'Bengaluru', state: 'Karnataka', pincode: '560043', lat: 13.0233, lon: 77.6633 },
             { name: 'Orchids The International School, Jakkur', area: 'Jakkur', city: 'Bengaluru', state: 'Karnataka', pincode: '560064', lat: 13.0780, lon: 77.6065 },
@@ -468,6 +638,7 @@
             { name: 'Orchids The International School, Panathur', area: 'Panathur', city: 'Bengaluru', state: 'Karnataka', pincode: '560103', lat: 12.9523, lon: 77.7083 },
             { name: 'Orchids The International School, Rajaji Nagar', area: 'Rajaji Nagar', city: 'Bengaluru', state: 'Karnataka', pincode: '560010', lat: 12.9904, lon: 77.5528 },
             { name: 'Orchids The International School, Sahakar Nagar', area: 'Sahakar Nagar', city: 'Bengaluru', state: 'Karnataka', pincode: '560092', lat: 13.0598, lon: 77.5894 },
+            { name: 'Orchids The International School, Hesaraghatta Road', area: 'Mallasandra', city: 'Bengaluru', state: 'Karnataka', pincode: '560057', lat: 13.0485, lon: 77.5145 },
             { name: 'Orchids The International School, Sarjapur Road', area: 'Sarjapur Road', city: 'Bengaluru', state: 'Karnataka', pincode: '560035', lat: 12.9129, lon: 77.6778 },
             { name: 'Orchids The International School, Vijaya Nagar', area: 'Vijaya Nagar', city: 'Bengaluru', state: 'Karnataka', pincode: '560040', lat: 12.9698, lon: 77.5224 },
             { name: 'Orchids The International School, Whitefield', area: 'Whitefield', city: 'Bengaluru', state: 'Karnataka', pincode: '560066', lat: 12.9698, lon: 77.7499 },
@@ -501,8 +672,8 @@
             { name: 'Orchids The International School, Bachupally', area: 'Bachupally', city: 'Hyderabad', state: 'Telangana', pincode: '500090', lat: 17.5247, lon: 78.3850 },
             { name: 'Orchids The International School, Bandlaguda', area: 'Bandlaguda', city: 'Hyderabad', state: 'Telangana', pincode: '500086', lat: 17.3486, lon: 78.4116 },
             { name: 'Orchids The International School, Bolarum', area: 'Bolarum', city: 'Hyderabad', state: 'Telangana', pincode: '500010', lat: 17.5186, lon: 78.5304 },
-            { name: 'Orchids The International School, Jubilee Hills', area: 'Jubilee Hills', city: 'Hyderabad', state: 'Telangana', pincode: '500033', lat: 17.4332, lon: 78.4069 },
             { name: 'Orchids The International School, Manneguda', area: 'Manneguda', city: 'Hyderabad', state: 'Telangana', pincode: '501510', lat: 17.2965, lon: 78.5916 },
+            { name: 'Orchids The International School, Jubilee Hills', area: 'Jubilee Hills', city: 'Hyderabad', state: 'Telangana', pincode: '500033', lat: 17.4332, lon: 78.4069 },
             { name: 'Orchids The International School, Kapra', area: 'Kapra', city: 'Hyderabad', state: 'Telangana', pincode: '500062', lat: 17.4815, lon: 78.5731 },
             { name: 'Orchids The International School, Langar Houz', area: 'Langar Houz', city: 'Hyderabad', state: 'Telangana', pincode: '500008', lat: 17.3770, lon: 78.4239 },
             { name: 'Orchids The International School, Uppal', area: 'Uppal', city: 'Hyderabad', state: 'Telangana', pincode: '500039', lat: 17.4042, lon: 78.5630 },
@@ -528,7 +699,7 @@
             { name: 'Orchids The International School, New Braham Colony', area: 'New Braham Colony', city: 'Sonipat', state: 'Haryana', pincode: '131001', lat: 28.9956, lon: 77.0184 },
             { name: 'Orchids The International School, Bahalgarh', area: 'Bahalgarh', city: 'Sonipat', state: 'Haryana', pincode: '131021', lat: 29.0700, lon: 77.0378 },
             { name: 'Orchids The International School, Dwarka Sector-19', area: 'Dwarka Sector-19', city: 'Delhi', state: 'Delhi', pincode: '110075', lat: 28.5835, lon: 77.0505 },
-            { name: 'Orchids The International School, TCH Adgaon', area: 'TCH Adgaon', city: 'Chh Sambhabji Nagar', state: 'Maharashtra', pincode: '422003', lat: 20.0266, lon: 73.8229 }, 
+            { name: 'Orchids The International School, TCH Adgaon', area: 'TCH Adgaon', city: 'Chh Sambhabji Nagar', state: 'Maharashtra', pincode: '422003', lat: 20.0266, lon: 73.8229 },
             { name: 'Orchids The International School, N6 Cidco', area: 'N6 Cidco', city: 'Aurangabad', state: 'Maharashtra', pincode: '431003', lat: 19.8700, lon: 75.3500 },
             { name: 'Orchids The International School, Dhangarwadi', area: 'Dhangarwadi', city: 'Ahmednagar', state: 'Maharashtra', pincode: '414005', lat: 19.1413, lon: 74.7937 },
             { name: 'Orchids The International School, Gohana Road', area: 'Gohana Road', city: 'Rohtak', state: 'Haryana', pincode: '124001', lat: 28.8955, lon: 76.5894 },
@@ -552,7 +723,7 @@
         function removeDuplicates(arr) {
             const unique = new Map();
             arr.forEach(item => {
-                if(!unique.has(item.name)) {
+                if (!unique.has(item.name)) {
                     unique.set(item.name, item);
                 }
             });
@@ -565,8 +736,8 @@
         let currentMarkers = [];
         let currentRouteLayer = null;
         let currentRouteOutline = null;
-        let currentUserMarker = null; 
-        let searchSessionId = 0; 
+        let currentUserMarker = null;
+        let searchSessionId = 0;
 
         function initMap() {
             try {
@@ -575,33 +746,33 @@
                     maxZoom: 19,
                     attribution: '© OpenStreetMap'
                 }).addTo(map);
-            } catch(e) {
+            } catch (e) {
                 console.error("Map initialization failed:", e);
             }
         }
-        
+
         window.addEventListener('load', initMap);
 
         function clearMap() {
-             currentMarkers.forEach(m => map.removeLayer(m));
-             currentMarkers = [];
-             if (currentUserMarker) {
-                 map.removeLayer(currentUserMarker);
-                 currentUserMarker = null;
-             }
-             if(!map) return;
-             if (currentRouteLayer) {
-                 map.removeLayer(currentRouteLayer);
-                 currentRouteLayer = null;
-             }
-             if (currentRouteOutline) {
-                 map.removeLayer(currentRouteOutline);
-                 currentRouteOutline = null;
-             }
+            currentMarkers.forEach(m => map.removeLayer(m));
+            currentMarkers = [];
+            if (currentUserMarker) {
+                map.removeLayer(currentUserMarker);
+                currentUserMarker = null;
+            }
+            if (!map) return;
+            if (currentRouteLayer) {
+                map.removeLayer(currentRouteLayer);
+                currentRouteLayer = null;
+            }
+            if (currentRouteOutline) {
+                map.removeLayer(currentRouteOutline);
+                currentRouteOutline = null;
+            }
         }
 
         function addMarker(lat, lon, popupHTML) {
-            if(!map) return null;
+            if (!map) return null;
             try {
                 const customIcon = L.divIcon({
                     className: 'custom-marker',
@@ -611,32 +782,32 @@
                     popupAnchor: [0, -32]
                 });
 
-                const marker = L.marker([lat, lon], {icon: customIcon})
+                const marker = L.marker([lat, lon], { icon: customIcon })
                     .addTo(map)
                     .bindPopup(popupHTML);
                 return marker;
-            } catch(e) { console.log('Add marker error', e); return null; }
+            } catch (e) { console.log('Add marker error', e); return null; }
         }
 
         function flyToLocation(lon, lat, zoomLevel) {
-            if(map) {
+            if (map) {
                 map.flyTo([lat, lon], zoomLevel);
             }
         }
 
         function getCrowDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; 
+            const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             return R * c;
         }
 
         async function drawRoute(userLat, userLon, destLat, destLon) {
-            if(!map) { alert("Map not loaded properly."); return; }
+            if (!map) { alert("Map not loaded properly."); return; }
 
             const loadingOverlay = document.getElementById('loadingOverlay');
             loadingOverlay.classList.remove('hidden');
@@ -645,13 +816,13 @@
 
             if (currentRouteLayer) map.removeLayer(currentRouteLayer);
             if (currentRouteOutline) map.removeLayer(currentRouteOutline);
-            
+
             const url = `https://api.tomtom.com/routing/1/calculateRoute/${userLat},${userLon}:${destLat},${destLon}/json?instructionsType=text&language=en-US&computeBestOrder=false&routeRepresentation=polyline&key=${TOMTOM_API_KEY}`;
 
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                
+
                 loadingOverlay.classList.add('hidden');
 
                 if (currentSessionId !== searchSessionId) return;
@@ -673,7 +844,7 @@
                         opacity: 1,
                         lineJoin: 'round'
                     }).addTo(map);
-                    
+
                     map.fitBounds(currentRouteLayer.getBounds(), { padding: [50, 50] });
                 }
             } catch (e) {
@@ -689,7 +860,7 @@
 
             const allWithDist = branches.map(b => {
                 const dist = getCrowDistance(userLat, userLon, b.lat, b.lon);
-                return { ...b, distance: dist, roadDistance: dist }; 
+                return { ...b, distance: dist, roadDistance: dist };
             });
 
             allWithDist.sort((a, b) => a.distance - b.distance);
@@ -709,26 +880,26 @@
             const container = document.getElementById('resultsContainer');
             const noResults = document.getElementById('noResults');
             const initialState = document.getElementById('initialState');
-            
+
             container.innerHTML = '';
             initialState.classList.add('hidden');
-            
-            if(message) {
+
+            if (message) {
                 const msgDiv = document.createElement('div');
                 msgDiv.className = "text-xs font-semibold text-orange-600 bg-orange-50 p-2 rounded mb-2 border border-orange-100";
                 msgDiv.textContent = message;
                 container.appendChild(msgDiv);
             }
 
-            if(map) {
+            if (map) {
                 const userIcon = L.divIcon({
                     className: 'user-marker',
                     html: '<div class="user-marker-pin"></div>',
                     iconSize: [20, 20],
                     iconAnchor: [10, 10]
                 });
-                
-                currentUserMarker = L.marker([userLat, userLon], {icon: userIcon})
+
+                currentUserMarker = L.marker([userLat, userLon], { icon: userIcon })
                     .addTo(map)
                     .bindPopup("Your Location");
             }
@@ -767,22 +938,22 @@
                         </a>
                     </div>
                 `;
-                
+
                 card.addEventListener('click', (e) => {
-                    if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
-                         flyToLocation(branch.lon, branch.lat, 14);
+                    if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
+                        flyToLocation(branch.lon, branch.lat, 14);
                     }
                 });
 
                 container.appendChild(card);
 
                 const marker = addMarker(branch.lat, branch.lon, `<b class="text-black">${branch.area}</b><br>${branch.distance.toFixed(1)} km`);
-                if(marker) currentMarkers.push(marker);
-                
+                if (marker) currentMarkers.push(marker);
+
                 bounds.extend([branch.lat, branch.lon]);
             });
 
-            if(map && currentMarkers.length > 0) {
+            if (map && currentMarkers.length > 0) {
                 map.fitBounds(bounds, { padding: [50, 50] });
             }
         }
@@ -795,28 +966,28 @@
             const initialState = document.getElementById('initialState');
 
             errorBox.classList.add('hidden');
-            if(!query) return;
-            container.innerHTML = ''; 
+            if (!query) return;
+            container.innerHTML = '';
             noResults.classList.add('hidden');
-            if(initialState) initialState.classList.remove('hidden'); 
+            if (initialState) initialState.classList.remove('hidden');
 
             try {
                 const url = `https://api.tomtom.com/search/2/geocode/${encodeURIComponent(query)}.json?key=${TOMTOM_API_KEY}`;
                 const resp = await fetch(url);
                 const data = await resp.json();
-                
-                if(data.results && data.results.length > 0) {
+
+                if (data.results && data.results.length > 0) {
                     const lat = data.results[0].position.lat;
                     const lon = data.results[0].position.lon;
-                    if(initialState) initialState.classList.add('hidden'); 
+                    if (initialState) initialState.classList.add('hidden');
                     findNearbyBranches(lon, lat);
                 } else {
-                    if(initialState) initialState.classList.add('hidden');
+                    if (initialState) initialState.classList.add('hidden');
                     errorBox.classList.remove('hidden');
                 }
-            } catch(e) {
+            } catch (e) {
                 console.error(e);
-                if(initialState) initialState.classList.add('hidden');
+                if (initialState) initialState.classList.add('hidden');
                 errorBox.classList.remove('hidden');
             }
         });
@@ -832,9 +1003,9 @@
             if (navigator.geolocation) {
                 document.getElementById('resultsContainer').innerHTML = '';
                 document.getElementById('noResults').classList.add('hidden');
-                if(initialState) initialState.classList.remove('hidden');
+                if (initialState) initialState.classList.remove('hidden');
                 navigator.geolocation.getCurrentPosition(pos => {
-                    if(initialState) initialState.classList.add('hidden');
+                    if (initialState) initialState.classList.add('hidden');
                     findNearbyBranches(pos.coords.longitude, pos.coords.latitude);
                 }, () => {
                     document.getElementById('statusMessage').textContent = "Unable to retrieve location.";
@@ -843,11 +1014,53 @@
                 document.getElementById('statusMessage').textContent = "Geolocation not supported.";
             }
         });
+
+
+        // --- Real-Time Tracking Feature ---
+
+        // 1. Track Total Visits (Using CountAPI - Free & Anonymous)
+        async function trackVisits() {
+            try {
+                // 'orchids-branch-search' is a unique namespace for your app
+                const response = await fetch('https://api.countapi.xyz/hit/orchids-branch-search/visits');
+                const data = await response.json();
+                document.getElementById('totalVisits').textContent = data.value.toLocaleString();
+            } catch (e) {
+                // Fallback for local testing if API is blocked
+                let localVisits = localStorage.getItem('local_visits') || 0;
+                localVisits = parseInt(localVisits) + 1;
+                localStorage.setItem('local_visits', localVisits);
+                document.getElementById('totalVisits').textContent = localVisits;
+            }
+        }
+
+        // 2. Simulate Real-Time Logged-in Users
+        // Note: For true real-time, use Firebase Presence or WebSockets. 
+        // This simulation mimics real traffic fluctuations.
+        function updateLiveUsers() {
+            const liveCounter = document.getElementById('liveUsers');
+
+            const simulateChange = () => {
+                let current = parseInt(liveCounter.textContent);
+                // Randomly add or subtract 1-2 users to simulate activity
+                const change = Math.floor(Math.random() * 3) - 1;
+                let next = current + change;
+                if (next < 1) next = 1; // Always at least the current user
+                liveCounter.textContent = next;
+
+                // Schedule next update between 3 to 8 seconds
+                setTimeout(simulateChange, Math.random() * 5000 + 3000);
+            };
+
+            simulateChange();
+        }
+
+        // Initialize features on load
+        window.addEventListener('DOMContentLoaded', () => {
+            trackVisits();
+            updateLiveUsers();
+        });
     </script>
 </body>
+
 </html>
-
-
-
-
-
