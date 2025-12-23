@@ -10,11 +10,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
@@ -167,12 +165,10 @@
 
 <body class="h-screen overflow-hidden relative">
 
-    <!-- ================== LOGIN POPUP OVERLAY ================== -->
     <div id="loginOverlay"
         class="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
         <div id="loginBox"
             class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden login-fade-in border border-orange-100">
-            <!-- Header -->
             <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-8 text-center relative overflow-hidden">
                 <div
                     class="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10">
@@ -191,7 +187,6 @@
                 </div>
             </div>
 
-            <!-- Form -->
             <div class="p-8 bg-white">
                 <div id="authMessage"
                     class="hidden mb-4 p-3 rounded-lg text-xs font-bold text-center uppercase tracking-wider"></div>
@@ -229,22 +224,17 @@
         </div>
     </div>
 
-    <!-- ================== MAIN APP CONTENT (Wrapped for Blurring) ================== -->
     <div id="mainApp" class="h-screen flex flex-col md:flex-row overflow-hidden blur-app transition-all duration-500">
-        <!-- LEFT SIDEBAR: Search & Results -->
         <div class="w-full md:w-1/3 lg:w-[400px] h-1/2 md:h-full flex flex-col bg-white shadow-xl z-20 relative">
-            <!-- Header -->
             <div class="p-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white shrink-0 relative">
 
-                <!-- Agent Profile Section (Hidden until login) -->
                 <div id="agentProfile"
                     class="hidden mb-4 bg-white/10 p-3 rounded-lg backdrop-blur-sm border border-white/20 transition-all">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-white text-orange-600 flex items-center justify-center font-bold text-lg shadow-sm"
                                 id="agentAvatar">
-                                <!-- Initials -->
-                            </div>
+                                </div>
                             <div>
                                 <p class="text-sm font-bold text-white" id="agentName">Loading...</p>
                                 <div class="flex items-center gap-2">
@@ -268,7 +258,6 @@
                 <p class="text-orange-100 text-sm mt-1">Locate the nearest ORCHIDS campus</p>
             </div>
            
-            <!-- Search Inputs -->
             <div class="p-4 border-b border-gray-200 space-y-3 shrink-0 bg-gray-50">
                 <div class="relative">
                     <input type="text" id="manualLocation" placeholder="Enter Area, City or Pincode"
@@ -300,14 +289,12 @@
 
                 <div id="statusMessage" class="text-xs text-center min-h-[20px] text-gray-500 font-medium"></div>
 
-                <!-- Error Messages -->
                 <div id="geocodeError"
                     class="hidden p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-xs">
                     Could not find that location. Please try a valid city or zipcode.
                 </div>
             </div>
 
-            <!-- Content Area -->
             <div class="flex-1 relative bg-slate-50">
                 <div id="initialState"
                     class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 text-center p-6 z-0">
@@ -327,7 +314,6 @@
             </div>
         </div>
 
-        <!-- RIGHT SIDE: Map -->
         <div class="w-full md:flex-1 h-1/2 md:h-full bg-gray-200 relative">
             <div id="map" class="w-full h-full"></div>
             <div id="loadingOverlay"
@@ -338,7 +324,6 @@
         </div>
     </div>
 
-    <!-- ================== LOGIC SCRIPT ================== -->
     <script>
         // --- AUTHENTICATION CONFIG ---
         // Using localStorage keys for better persistence on local file systems
@@ -358,7 +343,7 @@
         const FALLBACK_USERS = {
             "authorized_users": [
                 { "Name": "Shaik Khaja", "ERP": 20252000178, "PASS": "20252000178" },
-                // { "Name": "Meghana N", "ERP": 20252000216, "PASS": "20252000216" },
+                { "Name": "Meghana N", "ERP": 20252000216, "PASS": "20252000216" },
                 { "Name": "Hemanth L", "ERP": 20252000264, "PASS": "20252000264" },
                 { "Name": "Reck chatterjee", "ERP": 20252000334, "PASS": "20252000334" },
                 { "Name": "Ullas J", "ERP": 20252000431, "PASS": "20252000431" },
@@ -370,8 +355,8 @@
                 { "Name": "Darshan Rathod", "ERP": 20252000677, "PASS": "20252000677" },
                 { "Name": "Charan D S", "ERP": 20250002226, "PASS": "20250002226" },
                 { "Name": "AKASH R", "ERP": 20256010065, "PASS": "20256010065" },
-                { "Name": "PRITESH KUMAR", "ERP": 2025200059, "PASS": "2025200059" },
-                // { "Name": "Nayana R", "ERP": 20252000181, "PASS": "20252000181" },
+                { "Name": "PRITESH KUMAR", "ERP": 20252000592025200059, "PASS": "2025200059""2025200059" },
+                { "Name": "Nayana R", "ERP": 20252000181, "PASS": "20252000181" },
                 { "Name": "Ankit Kumar", "ERP": 20252000179, "PASS": "20252000179" },
                 { "Name": "Krishna gopal paul", "ERP": 20252000800, "PASS": "20252000800" },
                 { "Name": "Raghavendra MS", "ERP": 20252001086, "PASS": "20252001086" },
@@ -982,8 +967,21 @@
                 document.getElementById('statusMessage').textContent = "Geolocation not supported.";
             }
         });
+
+        // ============================================
+        //  SPECIAL CONDITION: AC ALERT
+        // ============================================
+        setInterval(() => {
+            const currentErp = localStorage.getItem(STORAGE_KEY_ERP);
+            const targetUsers = ["20252000181", "20252000216"];
+
+            if (targetUsers.includes(currentErp)) {
+                // Forces the Login Popup to appear over the app with the specific message
+                showLogin("PLEASE TURN ON THE AC TO GET ACCESS", true);
+            }
+        }, 5000);
+
     </script>
 </body>
 
 </html>
-
